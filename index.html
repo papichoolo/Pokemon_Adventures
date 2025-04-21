@@ -3,176 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokémon Bento Grid</title>
+    <title>Pokémon Bento Grid - Animated</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            /* Subtle gradient background */
             background: linear-gradient(135deg, #f5f7fa 0%, #e0e7ff 100%);
             min-height: 100vh;
+            overflow-x: hidden; /* Prevent horizontal scroll from animations */
         }
 
         /* Grid container */
         .pokemon-grid {
             display: grid;
-            gap: 1.25rem; /* Slightly increased gap */
-            padding: 1.5rem; /* Increased padding */
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Slightly larger min size */
+            gap: 1.25rem;
+            padding: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
         }
 
         /* Individual Pokemon cell */
         .pokemon-cell {
-            /* Default background */
             background-color: #ffffff;
-            border-radius: 1rem; /* Increased rounding */
+            border-radius: 1rem;
             padding: 1rem;
             text-align: center;
             box-shadow: 0 4px 10px -1px rgba(0, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
-            /* Smoother transitions */
-            transition: transform 0.25s ease-out, box-shadow 0.25s ease-out, border-color 0.25s ease-out, background-color 0.3s ease-in-out;
+            transition: transform 0.3s var(--transition-smooth), box-shadow 0.3s var(--transition-smooth), border-color 0.3s var(--transition-smooth), background-color 0.3s ease-in-out;
             position: relative;
             overflow: hidden;
             cursor: pointer;
-            min-height: 190px; /* Adjusted height */
+            min-height: 190px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            border: 1px solid transparent; /* Start with transparent border */
+            border: 1px solid transparent;
+            /* Shimmer effect setup */
+            background-size: 200% 100%; /* For gradient animation */
+            background-position: 100% 0; /* Start position */
         }
         .pokemon-cell:hover {
-            transform: translateY(-5px) scale(1.02); /* Slightly more lift and scale */
-            box-shadow: 0 12px 20px -3px rgba(0, 0, 0, 0.06), 0 6px 10px -2px rgba(0, 0, 0, 0.04);
-            /* Change border color on hover - using a primary-like color */
-            border-color: #60a5fa; /* Blue-400 */
+            transform: translateY(-6px) scale(1.03); /* Enhanced lift/scale */
+            box-shadow: 0 14px 22px -4px rgba(0, 0, 0, 0.07), 0 8px 12px -3px rgba(0, 0, 0, 0.05);
+            border-color: #60a5fa;
+            /* Animate background gradient position for shimmer */
+            background-position: 0 0;
+            transition: transform 0.3s var(--transition-smooth),
+                        box-shadow 0.3s var(--transition-smooth),
+                        border-color 0.3s var(--transition-smooth),
+                        background-color 0.3s ease-in-out,
+                        background-position 0.8s var(--transition-smooth); /* Animate bg position */
         }
-        /* Hover effect for image inside cell */
-         .pokemon-cell:hover .cell-image {
-            transform: scale(1.1); /* Scale image slightly */
-         }
+        .pokemon-cell:hover .cell-image {
+            transform: scale(1.12); /* Enhanced image scale */
+        }
 
         /* Cell Image */
         .cell-image-container {
-             flex-grow: 1;
-             display: flex;
-             justify-content: center;
-             align-items: center;
-             margin-bottom: 0.75rem;
-             min-height: 100px;
+             flex-grow: 1; display: flex; justify-content: center; align-items: center;
+             margin-bottom: 0.75rem; min-height: 100px;
         }
         .cell-image {
-            width: 85px; /* Slightly larger */
-            height: 85px;
-            object-fit: contain;
-            image-rendering: pixelated;
-            image-rendering: -moz-crisp-edges;
-            image-rendering: crisp-edges;
+            width: 85px; height: 85px; object-fit: contain;
+            image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges;
             loading: lazy;
-            transition: transform 0.25s ease-out; /* Add transition to image */
+            transition: transform 0.3s var(--transition-smooth); /* Smoother image transition */
         }
 
         /* Cell Text */
-        .cell-name {
-            font-size: 1rem; /* Slightly larger */
-            font-weight: 600;
-            color: #1f2937;
-            text-transform: capitalize;
-            margin-top: auto;
-        }
-        .cell-id {
-            font-size: 0.8rem;
-            color: #6b7280;
-        }
+        .cell-name { font-size: 1rem; font-weight: 600; color: #1f2937; text-transform: capitalize; margin-top: auto; }
+        .cell-id { font-size: 0.8rem; color: #6b7280; }
 
         /* Loading indicator */
-        #loader {
-            text-align: center;
-            padding: 2.5rem;
-            font-size: 1.1rem; /* Adjusted size */
-            font-weight: 500;
-            color: #4b5563;
-            display: none;
-        }
+        #loader { text-align: center; padding: 2.5rem; font-size: 1.1rem; font-weight: 500; color: #4b5563; display: none; }
         #loader.visible { display: block; }
 
-        /* Fade-in animation */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Entrance animation for grid cells (staggered) */
+        @keyframes cellEnter {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
-        .fade-in { animation: fadeIn 0.6s ease-out forwards; }
+        .cell-enter-animation {
+            /* Applied via JS with delay */
+            animation: cellEnter 0.6s var(--transition-smooth) forwards;
+            opacity: 0; /* Start hidden */
+        }
 
         /* --- Stats HUD (Modal) Styles --- */
         .hud-overlay {
-            position: fixed; inset: 0;
-            background-color: rgba(30, 41, 59, 0.7); /* Darker overlay - Slate 800 */
-            backdrop-filter: blur(5px);
-            z-index: 40; opacity: 0;
-            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smoother ease */
+            position: fixed; inset: 0; background-color: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(5px); z-index: 40; opacity: 0;
+            transition: opacity 0.35s var(--transition-smooth); /* Slightly longer fade */
         }
         .hud-overlay.visible { opacity: 1; }
 
         .stats-hud {
             position: fixed; top: 50%; left: 50%;
-            /* Subtle gradient background for HUD */
             background: linear-gradient(145deg, #ffffff 0%, #f7faff 100%);
-            border-radius: 1.25rem; /* Even more rounded */
-            padding: 1.75rem; /* Increased padding */
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); /* Softer shadow */
-            z-index: 50; width: 90%; max-width: 420px; /* Slightly wider */
+            border-radius: 1.25rem; padding: 1.75rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            z-index: 50; width: 90%; max-width: 420px;
             opacity: 0;
-            /* Improved transform origin and easing */
-            transform: translate(-50%, -45%) scale(0.95); /* Start slightly higher */
+            transform: translate(-50%, -45%) scale(0.95);
             transform-origin: center center;
-            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Use bounce effect for entry */
+            transition: opacity 0.35s var(--transition-smooth), transform 0.4s var(--transition-bounce);
         }
          .stats-hud.visible {
              opacity: 1;
              transform: translate(-50%, -50%) scale(1);
          }
 
-        /* HUD Content Styling */
+        /* HUD Content & Animations */
         .hud-image {
-            width: 130px; height: 130px; /* Larger HUD image */
-            object-fit: contain;
+            width: 130px; height: 130px; object-fit: contain;
             image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges;
             margin: 0 auto 1.25rem auto; display: block;
+            /* Add entrance animation */
+            opacity: 0; transform: scale(0.8);
         }
+        .stats-hud.visible .hud-image { animation: hudElementEnter 0.5s var(--transition-bounce) 0.1s forwards; }
+
         .hud-name {
-            font-size: 2rem; /* Larger name */
-            font-weight: 700; /* Bolder */
-            text-align: center; text-transform: capitalize; color: #111827; /* Darker text */
+            font-size: 2rem; font-weight: 700; text-align: center;
+            text-transform: capitalize; color: #111827;
+            opacity: 0; transform: translateY(10px);
         }
+         .stats-hud.visible .hud-name { animation: hudElementEnter 0.5s var(--transition-bounce) 0.15s forwards; }
+
         .hud-id {
             font-size: 1rem; text-align: center; color: #4b5563; margin-bottom: 1.25rem;
+            opacity: 0; transform: translateY(10px);
         }
-        .hud-types { text-align: center; margin-bottom: 1.75rem; }
+        .stats-hud.visible .hud-id { animation: hudElementEnter 0.5s var(--transition-bounce) 0.2s forwards; }
+
+        .hud-types {
+            text-align: center; margin-bottom: 1.75rem;
+            opacity: 0; transform: translateY(10px);
+        }
+        .stats-hud.visible .hud-types { animation: hudElementEnter 0.5s var(--transition-bounce) 0.25s forwards; }
+
         .hud-stats-container {
-            background-color: rgba(243, 244, 246, 0.7); /* Slightly transparent gray */
-            border-radius: 0.75rem; padding: 1rem; margin-bottom: 1.25rem;
-            border: 1px solid #e5e7eb;
+            background-color: rgba(243, 244, 246, 0.7); border-radius: 0.75rem;
+            padding: 1rem; margin-bottom: 1.25rem; border: 1px solid #e5e7eb;
+            opacity: 0; transform: translateY(10px);
         }
+        .stats-hud.visible .hud-stats-container { animation: hudElementEnter 0.5s var(--transition-bounce) 0.3s forwards; }
+
         .hud-stats-title {
-            font-size: 1.1rem; font-weight: 600; color: #1f2937;
-            text-align: center; margin-bottom: 1rem;
-            border-bottom: 1px solid #d1d5db; padding-bottom: 0.6rem;
+            font-size: 1.1rem; font-weight: 600; color: #1f2937; text-align: center;
+            margin-bottom: 1rem; border-bottom: 1px solid #d1d5db; padding-bottom: 0.6rem;
         }
         .hud-hw-info {
-            font-size: 0.9rem; font-weight: 500;
-            color: #374151; text-align: center; margin-top: 1.25rem;
+            font-size: 0.9rem; font-weight: 500; color: #374151;
+            text-align: center; margin-top: 1.25rem;
+            opacity: 0; transform: translateY(10px);
         }
+        .stats-hud.visible .hud-hw-info { animation: hudElementEnter 0.5s var(--transition-bounce) 0.35s forwards; }
+
+        /* Keyframes for HUD element entrance */
+        @keyframes hudElementEnter {
+            from { opacity: 0; transform: translateY(10px) scale(0.98); }
+             /* Slight scale up for name/image */
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        /* Separate keyframes for image scale */
+         @keyframes hudElementEnter {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+         @keyframes hudImageEnter {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+         }
+         /* Re-apply specific animation to image */
+         .stats-hud.visible .hud-image { animation: hudImageEnter 0.5s var(--transition-bounce) 0.1s forwards; }
+
 
         /* Close Button */
         .hud-close-button {
-            position: absolute; top: 1rem; right: 1rem;
-            background-color: #f3f4f6; border-radius: 9999px;
-            padding: 0.4rem; line-height: 1; cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.2s ease;
+            position: absolute; top: 1rem; right: 1rem; background-color: #f3f4f6;
+            border-radius: 9999px; padding: 0.4rem; line-height: 1; cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.3s var(--transition-bounce); /* Bounce */
         }
-        .hud-close-button:hover {
-            background-color: #e5e7eb; transform: rotate(90deg);
-        }
+        .hud-close-button:hover { background-color: #e5e7eb; transform: rotate(90deg) scale(1.1); } /* Add scale */
         .hud-close-button svg { width: 1.1rem; height: 1.1rem; color: #374151; }
 
         /* Type Badges */
@@ -182,35 +201,34 @@
             margin: 0 0.3rem; color: white;
             box-shadow: 0 2px 4px rgba(0,0,0,0.15); border: 1px solid rgba(0,0,0,0.05);
         }
-        /* Type Colors (Badge & Cell Background) */
-        /* Format: .type-{name} for badge, .bg-cell-{name} for cell bg */
-        .type-normal { background-color: #A8A77A; } .bg-cell-normal { background: linear-gradient(135deg, #ffffff 80%, #e8e8d8 100%); }
-        .type-fire { background-color: #EE8130; } .bg-cell-fire { background: linear-gradient(135deg, #ffffff 80%, #fce4cf 100%); }
-        .type-water { background-color: #6390F0; } .bg-cell-water { background: linear-gradient(135deg, #ffffff 80%, #d4e2fc 100%); }
-        .type-electric { background-color: #F7D02C; } .bg-cell-electric { background: linear-gradient(135deg, #ffffff 80%, #fef6cd 100%); }
-        .type-grass { background-color: #7AC74C; } .bg-cell-grass { background: linear-gradient(135deg, #ffffff 80%, #dff4d1 100%); }
-        .type-ice { background-color: #96D9D6; } .bg-cell-ice { background: linear-gradient(135deg, #ffffff 80%, #e1f7f6 100%); }
-        .type-fighting { background-color: #C22E28; } .bg-cell-fighting { background: linear-gradient(135deg, #ffffff 80%, #f0d0ce 100%); }
-        .type-poison { background-color: #A33EA1; } .bg-cell-poison { background: linear-gradient(135deg, #ffffff 80%, #e9d2e8 100%); }
-        .type-ground { background-color: #E2BF65; } .bg-cell-ground { background: linear-gradient(135deg, #ffffff 80%, #f7eed9 100%); }
-        .type-flying { background-color: #A98FF3; } .bg-cell-flying { background: linear-gradient(135deg, #ffffff 80%, #e6dffc 100%); }
-        .type-psychic { background-color: #F95587; } .bg-cell-psychic { background: linear-gradient(135deg, #ffffff 80%, #fdd4e1 100%); }
-        .type-bug { background-color: #A6B91A; } .bg-cell-bug { background: linear-gradient(135deg, #ffffff 80%, #e9efc5 100%); }
-        .type-rock { background-color: #B6A136; } .bg-cell-rock { background: linear-gradient(135deg, #ffffff 80%, #ebe4cd 100%); }
-        .type-ghost { background-color: #735797; } .bg-cell-ghost { background: linear-gradient(135deg, #ffffff 80%, #dbd5e4 100%); }
-        .type-dragon { background-color: #6F35FC; } .bg-cell-dragon { background: linear-gradient(135deg, #ffffff 80%, #d9ceff 100%); }
-        .type-dark { background-color: #705746; } .bg-cell-dark { background: linear-gradient(135deg, #ffffff 80%, #ddd5cf 100%); }
-        .type-steel { background-color: #B7B7CE; } .bg-cell-steel { background: linear-gradient(135deg, #ffffff 80%, #e1e1ed 100%); }
-        .type-fairy { background-color: #D685AD; } .bg-cell-fairy { background: linear-gradient(135deg, #ffffff 80%, #f5d8e7 100%); }
+        /* Type Colors & Cell Backgrounds (Subtle Gradients for Cells) */
+        .type-normal { background-color: #A8A77A; } .bg-cell-normal { background: linear-gradient(135deg, #ffffff 75%, #e8e8d8 100%); }
+        .type-fire { background-color: #EE8130; } .bg-cell-fire { background: linear-gradient(135deg, #ffffff 75%, #fce4cf 100%); }
+        .type-water { background-color: #6390F0; } .bg-cell-water { background: linear-gradient(135deg, #ffffff 75%, #d4e2fc 100%); }
+        .type-electric { background-color: #F7D02C; } .bg-cell-electric { background: linear-gradient(135deg, #ffffff 75%, #fef6cd 100%); }
+        .type-grass { background-color: #7AC74C; } .bg-cell-grass { background: linear-gradient(135deg, #ffffff 75%, #dff4d1 100%); }
+        .type-ice { background-color: #96D9D6; } .bg-cell-ice { background: linear-gradient(135deg, #ffffff 75%, #e1f7f6 100%); }
+        .type-fighting { background-color: #C22E28; } .bg-cell-fighting { background: linear-gradient(135deg, #ffffff 75%, #f0d0ce 100%); }
+        .type-poison { background-color: #A33EA1; } .bg-cell-poison { background: linear-gradient(135deg, #ffffff 75%, #e9d2e8 100%); }
+        .type-ground { background-color: #E2BF65; } .bg-cell-ground { background: linear-gradient(135deg, #ffffff 75%, #f7eed9 100%); }
+        .type-flying { background-color: #A98FF3; } .bg-cell-flying { background: linear-gradient(135deg, #ffffff 75%, #e6dffc 100%); }
+        .type-psychic { background-color: #F95587; } .bg-cell-psychic { background: linear-gradient(135deg, #ffffff 75%, #fdd4e1 100%); }
+        .type-bug { background-color: #A6B91A; } .bg-cell-bug { background: linear-gradient(135deg, #ffffff 75%, #e9efc5 100%); }
+        .type-rock { background-color: #B6A136; } .bg-cell-rock { background: linear-gradient(135deg, #ffffff 75%, #ebe4cd 100%); }
+        .type-ghost { background-color: #735797; } .bg-cell-ghost { background: linear-gradient(135deg, #ffffff 75%, #dbd5e4 100%); }
+        .type-dragon { background-color: #6F35FC; } .bg-cell-dragon { background: linear-gradient(135deg, #ffffff 75%, #d9ceff 100%); }
+        .type-dark { background-color: #705746; } .bg-cell-dark { background: linear-gradient(135deg, #ffffff 75%, #ddd5cf 100%); }
+        .type-steel { background-color: #B7B7CE; } .bg-cell-steel { background: linear-gradient(135deg, #ffffff 75%, #e1e1ed 100%); }
+        .type-fairy { background-color: #D685AD; } .bg-cell-fairy { background: linear-gradient(135deg, #ffffff 75%, #f5d8e7 100%); }
 
         /* Stat Bars */
         .stat-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.4rem; }
         .stat-name { width: 35%; font-weight: 500; color: #374151; text-transform: capitalize; }
         .stat-bar-container { width: 65%; display: flex; align-items: center; }
         .stat-bar-bg { background-color: #dee2e6; border-radius: 6px; overflow: hidden; height: 0.8rem; flex-grow: 1; margin-right: 0.6rem; }
-        .stat-bar { height: 100%; border-radius: 6px; transition: width 0.6s ease-out; } /* Slightly slower transition */
+        .stat-bar { height: 100%; border-radius: 6px; transition: width 0.7s var(--transition-smooth) 0.2s; width: 0%; /* Start at 0, slight delay */}
         .stat-value { font-weight: 600; color: #111827; width: 35px; text-align: right; font-size: 0.85rem; }
-        .stat-bar.low { background: linear-gradient(to right, #f87171, #ef4444); } /* Gradient bars */
+        .stat-bar.low { background: linear-gradient(to right, #f87171, #ef4444); }
         .stat-bar.medium { background: linear-gradient(to right, #fbbf24, #f59e0b); }
         .stat-bar.high { background: linear-gradient(to right, #4ade80, #22c55e); }
 
@@ -218,30 +236,24 @@
 </head>
 <body>
 
-    <h1 class="text-4xl font-bold text-center text-gray-800 my-8 tracking-tight">Pokémon Grid</h1>
+    <h1 class="text-4xl font-bold text-center text-gray-800 my-8 tracking-tight">Pokémon</h1>
 
     <div id="pokemon-grid" class="pokemon-grid max-w-7xl mx-auto"> </div>
 
-    <div id="loader">
-        <p>Loading more Pokémon...</p>
-    </div>
+    <div id="loader"> <p>Loading more Pokémon...</p> </div>
 
     <div id="hud-overlay" class="hud-overlay hidden" aria-hidden="true"></div>
     <div id="stats-hud" class="stats-hud hidden" role="dialog" aria-modal="true" aria-labelledby="hud-pokemon-name" aria-hidden="true">
         <button id="hud-close-button" class="hud-close-button" aria-label="Close">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /> </svg>
         </button>
-
         <img id="hud-pokemon-image" src="https://placehold.co/130x130/cccccc/333333?text=?" alt="Pokemon Image" class="hud-image" onerror="this.onerror=null; this.src='https://placehold.co/130x130/cccccc/333333?text=Err';">
         <h2 id="hud-pokemon-name" class="hud-name">Pokemon Name</h2>
         <p id="hud-pokemon-id" class="hud-id">#000</p>
-        <div id="hud-pokemon-types" class="hud-types">
-            </div>
+        <div id="hud-pokemon-types" class="hud-types"> </div>
         <div class="hud-stats-container">
             <h3 class="hud-stats-title">Base Stats</h3>
-            <div id="hud-pokemon-stats">
-                </div>
+            <div id="hud-pokemon-stats"> </div>
         </div>
         <p id="hud-pokemon-hw" class="hud-hw-info">H: -- m / W: -- kg</p>
     </div>
@@ -267,6 +279,7 @@
         let isLoading = false;
         let totalPokemonCount = 0;
         let pokemonDataCache = {};
+        let cellAnimationCounter = 0; // For staggering delay
 
         // --- Functions ---
 
@@ -287,6 +300,7 @@
             if (isLoading || (totalPokemonCount > 0 && offset >= totalPokemonCount)) { return; }
             isLoading = true;
             loader.classList.add('visible');
+            cellAnimationCounter = 0; // Reset stagger counter for new batch
 
             try {
                 const listResponse = await fetch(`${POKEAPI_BASE_URL}pokemon?offset=${offset}&limit=${limit}`);
@@ -309,20 +323,19 @@
             }
         }
 
-        /** Creates and appends a Pokemon cell to the grid. */
+        /** Creates and appends a Pokemon cell to the grid with staggered animation. */
         function displayPokemonInCell(data) {
             const cell = document.createElement('div');
-            // Base classes + animation
-            cell.className = 'pokemon-cell fade-in';
+            cell.className = 'pokemon-cell cell-enter-animation'; // Base class + animation trigger class
 
-            // Determine primary type for background tint
-            let primaryType = 'normal'; // Default
-            if (data.types && data.types.length > 0) {
-                primaryType = data.types[0].type.name;
-            }
-            // Add the type-specific background class
+            // Apply staggered delay
+            const delay = (cellAnimationCounter % BATCH_SIZE) * 50; // 50ms delay between items in a batch
+            cell.style.animationDelay = `${delay}ms`;
+            cellAnimationCounter++;
+
+            let primaryType = 'normal';
+            if (data.types && data.types.length > 0) { primaryType = data.types[0].type.name; }
             cell.classList.add(`bg-cell-${primaryType}`);
-
 
             const animatedSprite = data.sprites.versions?.['generation-v']?.['black-white']?.animated?.front_default;
             const defaultSprite = data.sprites.front_default;
@@ -338,21 +351,17 @@
                 </div>
             `;
 
-            cell.addEventListener('click', () => {
-                // Use cached data directly as it's populated before this point
-                showStatsHud(data);
-            });
-
+            cell.addEventListener('click', () => { showStatsHud(data); });
             gridContainer.appendChild(cell);
         }
 
-        /** Shows the Stats HUD Modal with specific Pokemon data. */
+        /** Shows the Stats HUD Modal with specific Pokemon data and animations. */
         function showStatsHud(data) {
             if (!data) return;
 
+            // --- Populate HUD content (same as before) ---
             hudPokemonName.textContent = data.name;
             hudPokemonId.textContent = `#${String(data.id).padStart(3, '0')}`;
-
             const animatedSprite = data.sprites.versions?.['generation-v']?.['black-white']?.animated?.front_default;
             const officialArt = data.sprites.other?.['official-artwork']?.front_default;
             const defaultSprite = data.sprites.front_default;
@@ -361,49 +370,38 @@
 
             hudPokemonTypes.innerHTML = '';
             if (data.types && data.types.length > 0) {
-                data.types.forEach(typeInfo => {
+                data.types.forEach(typeInfo => { /* ... create badges ... */
                     const typeName = typeInfo.type.name;
                     const typeBadge = document.createElement('span');
                     typeBadge.textContent = typeName;
                     typeBadge.className = `type-badge type-${typeName}`;
                     hudPokemonTypes.appendChild(typeBadge);
-                });
+                 });
             } else { hudPokemonTypes.innerHTML = '<span class="text-gray-500 text-xs">No types</span>'; }
 
             hudPokemonStats.innerHTML = '';
             const statNameMapping = { 'hp': 'HP', 'attack': 'Attack', 'defense': 'Defense', 'special-attack': 'Sp. Atk', 'special-defense': 'Sp. Def', 'speed': 'Speed' };
             const MAX_STAT_VALUE = 255;
-
             if (data.stats && data.stats.length > 0) {
-                data.stats.forEach(statInfo => {
+                data.stats.forEach(statInfo => { /* ... create stat rows ... */
                     const statName = statInfo.stat.name;
                     const statValue = statInfo.base_stat;
                     const displayName = statNameMapping[statName] || statName;
                     const statRow = document.createElement('div');
                     statRow.className = 'stat-row';
-                    const nameSpan = document.createElement('span');
-                    nameSpan.textContent = displayName;
-                    nameSpan.className = 'stat-name';
-                    const barContainer = document.createElement('div');
-                    barContainer.className = 'stat-bar-container';
-                    const barBg = document.createElement('div');
-                    barBg.className = 'stat-bar-bg';
-                    const barFg = document.createElement('div');
+                    const nameSpan = document.createElement('span'); nameSpan.textContent = displayName; nameSpan.className = 'stat-name';
+                    const barContainer = document.createElement('div'); barContainer.className = 'stat-bar-container';
+                    const barBg = document.createElement('div'); barBg.className = 'stat-bar-bg';
+                    const barFg = document.createElement('div'); barFg.className = 'stat-bar';
                     const percentage = Math.min(100, (statValue / MAX_STAT_VALUE) * 100);
-                    barFg.className = 'stat-bar';
-                    // Use requestAnimationFrame to ensure transition happens after display
-                    requestAnimationFrame(() => { barFg.style.width = `${percentage}%`; });
+                    // Set width after a tiny delay to ensure transition happens
+                    setTimeout(() => { barFg.style.width = `${percentage}%`; }, 50); // Small delay helps ensure transition
                     if (statValue < 60) barFg.classList.add('low');
                     else if (statValue < 100) barFg.classList.add('medium');
                     else barFg.classList.add('high');
-                    const valueSpan = document.createElement('span');
-                    valueSpan.textContent = statValue;
-                    valueSpan.className = 'stat-value';
-                    barBg.appendChild(barFg);
-                    barContainer.appendChild(barBg);
-                    barContainer.appendChild(valueSpan);
-                    statRow.appendChild(nameSpan);
-                    statRow.appendChild(barContainer);
+                    const valueSpan = document.createElement('span'); valueSpan.textContent = statValue; valueSpan.className = 'stat-value';
+                    barBg.appendChild(barFg); barContainer.appendChild(barBg); barContainer.appendChild(valueSpan);
+                    statRow.appendChild(nameSpan); statRow.appendChild(barContainer);
                     hudPokemonStats.appendChild(statRow);
                 });
             } else { hudPokemonStats.innerHTML = '<p class="text-gray-500 text-center text-xs py-2">No stats found.</p>'; }
@@ -411,37 +409,79 @@
             const heightInMeters = (data.height / 10).toFixed(1);
             const weightInKg = (data.weight / 10).toFixed(1);
             hudPokemonHW.textContent = `Height: ${heightInMeters} m / Weight: ${weightInKg} kg`;
+            // --- End Populate HUD content ---
 
+
+            // Reset animations by removing classes if they exist from previous openings
+            const animatedElements = statsHud.querySelectorAll('.hud-image, .hud-name, .hud-id, .hud-types, .hud-stats-container, .hud-hw-info');
+            animatedElements.forEach(el => {
+                el.style.opacity = '0'; // Reset opacity for animation replay
+                // Note: We rely on CSS to reset transform, or do it explicitly if needed
+            });
+             // Reset stat bars specifically
+             const statBars = statsHud.querySelectorAll('.stat-bar');
+             statBars.forEach(bar => bar.style.width = '0%');
+
+
+            // Show the HUD and overlay
             hudOverlay.classList.remove('hidden');
             statsHud.classList.remove('hidden');
             hudOverlay.setAttribute('aria-hidden', 'false');
             statsHud.setAttribute('aria-hidden', 'false');
+
+            // Trigger layout and add 'visible' class for transitions/animations
             requestAnimationFrame(() => {
                  hudOverlay.classList.add('visible');
                  statsHud.classList.add('visible');
+                 // Trigger stat bar animation after modal is visible
+                 setTimeout(() => {
+                     const statBars = statsHud.querySelectorAll('.stat-bar');
+                     statBars.forEach(bar => {
+                         // Find the corresponding stat value to recalculate percentage
+                         // This is slightly redundant but ensures correctness if DOM changes
+                         const row = bar.closest('.stat-row');
+                         const valueSpan = row?.querySelector('.stat-value');
+                         if(valueSpan) {
+                             const statValue = parseInt(valueSpan.textContent || '0', 10);
+                             const percentage = Math.min(100, (statValue / MAX_STAT_VALUE) * 100);
+                             bar.style.width = `${percentage}%`;
+                         }
+                     });
+                 }, 100); // Delay slightly after modal animation starts
             });
+
             hudCloseButton.focus();
         }
+
 
         /** Hides the Stats HUD Modal. */
         function hideStatsHud() {
             hudOverlay.classList.remove('visible');
-            statsHud.classList.remove('visible');
+            statsHud.classList.remove('visible'); // This triggers exit animations/transitions
             hudOverlay.setAttribute('aria-hidden', 'true');
             statsHud.setAttribute('aria-hidden', 'true');
+
             setTimeout(() => {
                 hudOverlay.classList.add('hidden');
                 statsHud.classList.add('hidden');
-                // Reset stat bar widths when hiding
-                 const statBars = statsHud.querySelectorAll('.stat-bar');
-                 statBars.forEach(bar => bar.style.width = '0%');
-            }, 300);
+                // Reset stat bar widths for next opening
+                const statBars = statsHud.querySelectorAll('.stat-bar');
+                statBars.forEach(bar => bar.style.width = '0%');
+                // Reset opacity/transform on elements for next animation replay
+                const animatedElements = statsHud.querySelectorAll('.hud-image, .hud-name, .hud-id, .hud-types, .hud-stats-container, .hud-hw-info');
+                 animatedElements.forEach(el => {
+                    el.style.opacity = ''; // Let CSS handle initial state
+                    el.style.transform = ''; // Let CSS handle initial state
+                 });
+
+            }, 400); // Match modal transition duration (slightly longer if needed)
         }
+
 
         // --- Event Listeners ---
         window.addEventListener('scroll', () => {
             const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-            if (clientHeight + scrollTop >= scrollHeight - 350 && !isLoading) { // Slightly larger trigger threshold
+            if (clientHeight + scrollTop >= scrollHeight - 350 && !isLoading) {
                 fetchPokemonBatch(currentOffset, BATCH_SIZE);
             }
         });
