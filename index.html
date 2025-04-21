@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon Bento Grid</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Subtle gradient background */
+            background: linear-gradient(135deg, #f5f7fa 0%, #e0e7ff 100%);
+            min-height: 100vh;
+        }
+
+        /* Grid container */
+        .pokemon-grid {
+            display: grid;
+            gap: 1.25rem; /* Slightly increased gap */
+            padding: 1.5rem; /* Increased padding */
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Slightly larger min size */
+        }
+
+        /* Individual Pokemon cell */
+        .pokemon-cell {
+            /* Default background */
+            background-color: #ffffff;
+            border-radius: 1rem; /* Increased rounding */
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 4px 10px -1px rgba(0, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
+            /* Smoother transitions */
+            transition: transform 0.25s ease-out, box-shadow 0.25s ease-out, border-color 0.25s ease-out, background-color 0.3s ease-in-out;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            min-height: 190px; /* Adjusted height */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border: 1px solid transparent; /* Start with transparent border */
+        }
+        .pokemon-cell:hover {
+            transform: translateY(-5px) scale(1.02); /* Slightly more lift and scale */
+            box-shadow: 0 12px 20px -3px rgba(0, 0, 0, 0.06), 0 6px 10px -2px rgba(0, 0, 0, 0.04);
+            /* Change border color on hover - using a primary-like color */
+            border-color: #60a5fa; /* Blue-400 */
+        }
+        /* Hover effect for image inside cell */
+         .pokemon-cell:hover .cell-image {
+            transform: scale(1.1); /* Scale image slightly */
+         }
+
+        /* Cell Image */
+        .cell-image-container {
+             flex-grow: 1;
+             display: flex;
+             justify-content: center;
+             align-items: center;
+             margin-bottom: 0.75rem;
+             min-height: 100px;
+        }
+        .cell-image {
+            width: 85px; /* Slightly larger */
+            height: 85px;
+            object-fit: contain;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+            loading: lazy;
+            transition: transform 0.25s ease-out; /* Add transition to image */
+        }
+
+        /* Cell Text */
+        .cell-name {
+            font-size: 1rem; /* Slightly larger */
+            font-weight: 600;
+            color: #1f2937;
+            text-transform: capitalize;
+            margin-top: auto;
+        }
+        .cell-id {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        /* Loading indicator */
+        #loader {
+            text-align: center;
+            padding: 2.5rem;
+            font-size: 1.1rem; /* Adjusted size */
+            font-weight: 500;
+            color: #4b5563;
+            display: none;
+        }
+        #loader.visible { display: block; }
+
+        /* Fade-in animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeIn 0.6s ease-out forwards; }
+
+        /* --- Stats HUD (Modal) Styles --- */
+        .hud-overlay {
+            position: fixed; inset: 0;
+            background-color: rgba(30, 41, 59, 0.7); /* Darker overlay - Slate 800 */
+            backdrop-filter: blur(5px);
+            z-index: 40; opacity: 0;
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smoother ease */
+        }
+        .hud-overlay.visible { opacity: 1; }
+
+        .stats-hud {
+            position: fixed; top: 50%; left: 50%;
+            /* Subtle gradient background for HUD */
+            background: linear-gradient(145deg, #ffffff 0%, #f7faff 100%);
+            border-radius: 1.25rem; /* Even more rounded */
+            padding: 1.75rem; /* Increased padding */
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); /* Softer shadow */
+            z-index: 50; width: 90%; max-width: 420px; /* Slightly wider */
+            opacity: 0;
+            /* Improved transform origin and easing */
+            transform: translate(-50%, -45%) scale(0.95); /* Start slightly higher */
+            transform-origin: center center;
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+         .stats-hud.visible {
+             opacity: 1;
+             transform: translate(-50%, -50%) scale(1);
+         }
+
+        /* HUD Content Styling */
+        .hud-image {
+            width: 130px; height: 130px; /* Larger HUD image */
+            object-fit: contain;
+            image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges;
+            margin: 0 auto 1.25rem auto; display: block;
+        }
+        .hud-name {
+            font-size: 2rem; /* Larger name */
+            font-weight: 700; /* Bolder */
+            text-align: center; text-transform: capitalize; color: #111827; /* Darker text */
+        }
+        .hud-id {
+            font-size: 1rem; text-align: center; color: #4b5563; margin-bottom: 1.25rem;
+        }
+        .hud-types { text-align: center; margin-bottom: 1.75rem; }
+        .hud-stats-container {
+            background-color: rgba(243, 244, 246, 0.7); /* Slightly transparent gray */
+            border-radius: 0.75rem; padding: 1rem; margin-bottom: 1.25rem;
+            border: 1px solid #e5e7eb;
+        }
+        .hud-stats-title {
+            font-size: 1.1rem; font-weight: 600; color: #1f2937;
+            text-align: center; margin-bottom: 1rem;
+            border-bottom: 1px solid #d1d5db; padding-bottom: 0.6rem;
+        }
+        .hud-hw-info {
+            font-size: 0.9rem; font-weight: 500;
+            color: #374151; text-align: center; margin-top: 1.25rem;
+        }
+
+        /* Close Button */
+        .hud-close-button {
+            position: absolute; top: 1rem; right: 1rem;
+            background-color: #f3f4f6; border-radius: 9999px;
+            padding: 0.4rem; line-height: 1; cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+        .hud-close-button:hover {
+            background-color: #e5e7eb; transform: rotate(90deg);
+        }
+        .hud-close-button svg { width: 1.1rem; height: 1.1rem; color: #374151; }
+
+        /* Type Badges */
+        .type-badge {
+            display: inline-block; padding: 0.3rem 0.8rem; border-radius: 9999px;
+            font-size: 0.85rem; font-weight: 600; text-transform: capitalize;
+            margin: 0 0.3rem; color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15); border: 1px solid rgba(0,0,0,0.05);
+        }
+        /* Type Colors (Badge & Cell Background) */
+        /* Format: .type-{name} for badge, .bg-cell-{name} for cell bg */
+        .type-normal { background-color: #A8A77A; } .bg-cell-normal { background: linear-gradient(135deg, #ffffff 80%, #e8e8d8 100%); }
+        .type-fire { background-color: #EE8130; } .bg-cell-fire { background: linear-gradient(135deg, #ffffff 80%, #fce4cf 100%); }
+        .type-water { background-color: #6390F0; } .bg-cell-water { background: linear-gradient(135deg, #ffffff 80%, #d4e2fc 100%); }
+        .type-electric { background-color: #F7D02C; } .bg-cell-electric { background: linear-gradient(135deg, #ffffff 80%, #fef6cd 100%); }
+        .type-grass { background-color: #7AC74C; } .bg-cell-grass { background: linear-gradient(135deg, #ffffff 80%, #dff4d1 100%); }
+        .type-ice { background-color: #96D9D6; } .bg-cell-ice { background: linear-gradient(135deg, #ffffff 80%, #e1f7f6 100%); }
+        .type-fighting { background-color: #C22E28; } .bg-cell-fighting { background: linear-gradient(135deg, #ffffff 80%, #f0d0ce 100%); }
+        .type-poison { background-color: #A33EA1; } .bg-cell-poison { background: linear-gradient(135deg, #ffffff 80%, #e9d2e8 100%); }
+        .type-ground { background-color: #E2BF65; } .bg-cell-ground { background: linear-gradient(135deg, #ffffff 80%, #f7eed9 100%); }
+        .type-flying { background-color: #A98FF3; } .bg-cell-flying { background: linear-gradient(135deg, #ffffff 80%, #e6dffc 100%); }
+        .type-psychic { background-color: #F95587; } .bg-cell-psychic { background: linear-gradient(135deg, #ffffff 80%, #fdd4e1 100%); }
+        .type-bug { background-color: #A6B91A; } .bg-cell-bug { background: linear-gradient(135deg, #ffffff 80%, #e9efc5 100%); }
+        .type-rock { background-color: #B6A136; } .bg-cell-rock { background: linear-gradient(135deg, #ffffff 80%, #ebe4cd 100%); }
+        .type-ghost { background-color: #735797; } .bg-cell-ghost { background: linear-gradient(135deg, #ffffff 80%, #dbd5e4 100%); }
+        .type-dragon { background-color: #6F35FC; } .bg-cell-dragon { background: linear-gradient(135deg, #ffffff 80%, #d9ceff 100%); }
+        .type-dark { background-color: #705746; } .bg-cell-dark { background: linear-gradient(135deg, #ffffff 80%, #ddd5cf 100%); }
+        .type-steel { background-color: #B7B7CE; } .bg-cell-steel { background: linear-gradient(135deg, #ffffff 80%, #e1e1ed 100%); }
+        .type-fairy { background-color: #D685AD; } .bg-cell-fairy { background: linear-gradient(135deg, #ffffff 80%, #f5d8e7 100%); }
+
+        /* Stat Bars */
+        .stat-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.4rem; }
+        .stat-name { width: 35%; font-weight: 500; color: #374151; text-transform: capitalize; }
+        .stat-bar-container { width: 65%; display: flex; align-items: center; }
+        .stat-bar-bg { background-color: #dee2e6; border-radius: 6px; overflow: hidden; height: 0.8rem; flex-grow: 1; margin-right: 0.6rem; }
+        .stat-bar { height: 100%; border-radius: 6px; transition: width 0.6s ease-out; } /* Slightly slower transition */
+        .stat-value { font-weight: 600; color: #111827; width: 35px; text-align: right; font-size: 0.85rem; }
+        .stat-bar.low { background: linear-gradient(to right, #f87171, #ef4444); } /* Gradient bars */
+        .stat-bar.medium { background: linear-gradient(to right, #fbbf24, #f59e0b); }
+        .stat-bar.high { background: linear-gradient(to right, #4ade80, #22c55e); }
+
+    </style>
+</head>
+<body>
+
+    <h1 class="text-4xl font-bold text-center text-gray-800 my-8 tracking-tight">Pokémon Grid</h1>
+
+    <div id="pokemon-grid" class="pokemon-grid max-w-7xl mx-auto"> </div>
+
+    <div id="loader">
+        <p>Loading more Pokémon...</p>
+    </div>
+
+    <div id="hud-overlay" class="hud-overlay hidden" aria-hidden="true"></div>
+    <div id="stats-hud" class="stats-hud hidden" role="dialog" aria-modal="true" aria-labelledby="hud-pokemon-name" aria-hidden="true">
+        <button id="hud-close-button" class="hud-close-button" aria-label="Close">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+
+        <img id="hud-pokemon-image" src="https://placehold.co/130x130/cccccc/333333?text=?" alt="Pokemon Image" class="hud-image" onerror="this.onerror=null; this.src='https://placehold.co/130x130/cccccc/333333?text=Err';">
+        <h2 id="hud-pokemon-name" class="hud-name">Pokemon Name</h2>
+        <p id="hud-pokemon-id" class="hud-id">#000</p>
+        <div id="hud-pokemon-types" class="hud-types">
+            </div>
+        <div class="hud-stats-container">
+            <h3 class="hud-stats-title">Base Stats</h3>
+            <div id="hud-pokemon-stats">
+                </div>
+        </div>
+        <p id="hud-pokemon-hw" class="hud-hw-info">H: -- m / W: -- kg</p>
+    </div>
+
+    <script>
+        // DOM Elements
+        const gridContainer = document.getElementById('pokemon-grid');
+        const loader = document.getElementById('loader');
+        const hudOverlay = document.getElementById('hud-overlay');
+        const statsHud = document.getElementById('stats-hud');
+        const hudCloseButton = document.getElementById('hud-close-button');
+        const hudPokemonImage = document.getElementById('hud-pokemon-image');
+        const hudPokemonName = document.getElementById('hud-pokemon-name');
+        const hudPokemonId = document.getElementById('hud-pokemon-id');
+        const hudPokemonTypes = document.getElementById('hud-pokemon-types');
+        const hudPokemonStats = document.getElementById('hud-pokemon-stats');
+        const hudPokemonHW = document.getElementById('hud-pokemon-hw');
+
+        // API and State Variables
+        const POKEAPI_BASE_URL = 'https://pokeapi.co/api/v2/';
+        const BATCH_SIZE = 30;
+        let currentOffset = 0;
+        let isLoading = false;
+        let totalPokemonCount = 0;
+        let pokemonDataCache = {};
+
+        // --- Functions ---
+
+        /** Fetches detailed data for a single Pokemon by its URL. Caches results. */
+        async function fetchPokemonDetails(url) {
+            if (pokemonDataCache[url]) { return pokemonDataCache[url]; }
+            try {
+                const response = await fetch(url);
+                if (!response.ok) { console.error(`Failed fetch ${url}: ${response.status}`); return null; }
+                const data = await response.json();
+                pokemonDataCache[url] = data;
+                return data;
+            } catch (error) { console.error(`Error fetching ${url}:`, error); return null; }
+        }
+
+        /** Fetches a batch of Pokemon data (list + details). */
+        async function fetchPokemonBatch(offset, limit) {
+            if (isLoading || (totalPokemonCount > 0 && offset >= totalPokemonCount)) { return; }
+            isLoading = true;
+            loader.classList.add('visible');
+
+            try {
+                const listResponse = await fetch(`${POKEAPI_BASE_URL}pokemon?offset=${offset}&limit=${limit}`);
+                if (!listResponse.ok) throw new Error(`List fetch failed: ${listResponse.status}`);
+                const listData = await listResponse.json();
+
+                if (totalPokemonCount === 0) { totalPokemonCount = listData.count; console.log(`Total Pokemon: ${totalPokemonCount}`); }
+
+                const detailPromises = listData.results.map(p => fetchPokemonDetails(p.url));
+                const detailedPokemonData = await Promise.all(detailPromises);
+
+                detailedPokemonData.forEach(data => { if (data) { displayPokemonInCell(data); } });
+                currentOffset += limit;
+
+            } catch (error) { console.error("Batch fetch error:", error); loader.textContent = "Failed to load."; }
+            finally {
+                isLoading = false;
+                if (currentOffset < totalPokemonCount) { loader.classList.remove('visible'); }
+                else { loader.textContent = "All Pokémon loaded!"; loader.classList.add('visible'); }
+            }
+        }
+
+        /** Creates and appends a Pokemon cell to the grid. */
+        function displayPokemonInCell(data) {
+            const cell = document.createElement('div');
+            // Base classes + animation
+            cell.className = 'pokemon-cell fade-in';
+
+            // Determine primary type for background tint
+            let primaryType = 'normal'; // Default
+            if (data.types && data.types.length > 0) {
+                primaryType = data.types[0].type.name;
+            }
+            // Add the type-specific background class
+            cell.classList.add(`bg-cell-${primaryType}`);
+
+
+            const animatedSprite = data.sprites.versions?.['generation-v']?.['black-white']?.animated?.front_default;
+            const defaultSprite = data.sprites.front_default;
+            const spriteUrl = animatedSprite || defaultSprite || 'https://placehold.co/85x85/cccccc/333333?text=?';
+
+            cell.innerHTML = `
+                <div class="cell-image-container">
+                    <img src="${spriteUrl}" alt="${data.name}" class="cell-image" onerror="this.onerror=null; this.src='https://placehold.co/85x85/cccccc/333333?text=Err';">
+                </div>
+                <div>
+                    <p class="cell-name">${data.name}</p>
+                    <p class="cell-id">#${String(data.id).padStart(3, '0')}</p>
+                </div>
+            `;
+
+            cell.addEventListener('click', () => {
+                // Use cached data directly as it's populated before this point
+                showStatsHud(data);
+            });
+
+            gridContainer.appendChild(cell);
+        }
+
+        /** Shows the Stats HUD Modal with specific Pokemon data. */
+        function showStatsHud(data) {
+            if (!data) return;
+
+            hudPokemonName.textContent = data.name;
+            hudPokemonId.textContent = `#${String(data.id).padStart(3, '0')}`;
+
+            const animatedSprite = data.sprites.versions?.['generation-v']?.['black-white']?.animated?.front_default;
+            const officialArt = data.sprites.other?.['official-artwork']?.front_default;
+            const defaultSprite = data.sprites.front_default;
+            hudPokemonImage.src = animatedSprite || officialArt || defaultSprite || 'https://placehold.co/130x130/cccccc/333333?text=?';
+            hudPokemonImage.alt = data.name;
+
+            hudPokemonTypes.innerHTML = '';
+            if (data.types && data.types.length > 0) {
+                data.types.forEach(typeInfo => {
+                    const typeName = typeInfo.type.name;
+                    const typeBadge = document.createElement('span');
+                    typeBadge.textContent = typeName;
+                    typeBadge.className = `type-badge type-${typeName}`;
+                    hudPokemonTypes.appendChild(typeBadge);
+                });
+            } else { hudPokemonTypes.innerHTML = '<span class="text-gray-500 text-xs">No types</span>'; }
+
+            hudPokemonStats.innerHTML = '';
+            const statNameMapping = { 'hp': 'HP', 'attack': 'Attack', 'defense': 'Defense', 'special-attack': 'Sp. Atk', 'special-defense': 'Sp. Def', 'speed': 'Speed' };
+            const MAX_STAT_VALUE = 255;
+
+            if (data.stats && data.stats.length > 0) {
+                data.stats.forEach(statInfo => {
+                    const statName = statInfo.stat.name;
+                    const statValue = statInfo.base_stat;
+                    const displayName = statNameMapping[statName] || statName;
+                    const statRow = document.createElement('div');
+                    statRow.className = 'stat-row';
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = displayName;
+                    nameSpan.className = 'stat-name';
+                    const barContainer = document.createElement('div');
+                    barContainer.className = 'stat-bar-container';
+                    const barBg = document.createElement('div');
+                    barBg.className = 'stat-bar-bg';
+                    const barFg = document.createElement('div');
+                    const percentage = Math.min(100, (statValue / MAX_STAT_VALUE) * 100);
+                    barFg.className = 'stat-bar';
+                    // Use requestAnimationFrame to ensure transition happens after display
+                    requestAnimationFrame(() => { barFg.style.width = `${percentage}%`; });
+                    if (statValue < 60) barFg.classList.add('low');
+                    else if (statValue < 100) barFg.classList.add('medium');
+                    else barFg.classList.add('high');
+                    const valueSpan = document.createElement('span');
+                    valueSpan.textContent = statValue;
+                    valueSpan.className = 'stat-value';
+                    barBg.appendChild(barFg);
+                    barContainer.appendChild(barBg);
+                    barContainer.appendChild(valueSpan);
+                    statRow.appendChild(nameSpan);
+                    statRow.appendChild(barContainer);
+                    hudPokemonStats.appendChild(statRow);
+                });
+            } else { hudPokemonStats.innerHTML = '<p class="text-gray-500 text-center text-xs py-2">No stats found.</p>'; }
+
+            const heightInMeters = (data.height / 10).toFixed(1);
+            const weightInKg = (data.weight / 10).toFixed(1);
+            hudPokemonHW.textContent = `Height: ${heightInMeters} m / Weight: ${weightInKg} kg`;
+
+            hudOverlay.classList.remove('hidden');
+            statsHud.classList.remove('hidden');
+            hudOverlay.setAttribute('aria-hidden', 'false');
+            statsHud.setAttribute('aria-hidden', 'false');
+            requestAnimationFrame(() => {
+                 hudOverlay.classList.add('visible');
+                 statsHud.classList.add('visible');
+            });
+            hudCloseButton.focus();
+        }
+
+        /** Hides the Stats HUD Modal. */
+        function hideStatsHud() {
+            hudOverlay.classList.remove('visible');
+            statsHud.classList.remove('visible');
+            hudOverlay.setAttribute('aria-hidden', 'true');
+            statsHud.setAttribute('aria-hidden', 'true');
+            setTimeout(() => {
+                hudOverlay.classList.add('hidden');
+                statsHud.classList.add('hidden');
+                // Reset stat bar widths when hiding
+                 const statBars = statsHud.querySelectorAll('.stat-bar');
+                 statBars.forEach(bar => bar.style.width = '0%');
+            }, 300);
+        }
+
+        // --- Event Listeners ---
+        window.addEventListener('scroll', () => {
+            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+            if (clientHeight + scrollTop >= scrollHeight - 350 && !isLoading) { // Slightly larger trigger threshold
+                fetchPokemonBatch(currentOffset, BATCH_SIZE);
+            }
+        });
+        hudCloseButton.addEventListener('click', hideStatsHud);
+        hudOverlay.addEventListener('click', hideStatsHud);
+        statsHud.addEventListener('click', (event) => { event.stopPropagation(); });
+        window.addEventListener('keydown', (event) => { if (event.key === 'Escape' && statsHud.classList.contains('visible')) { hideStatsHud(); } });
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', () => { fetchPokemonBatch(currentOffset, BATCH_SIZE); });
+
+    </script>
+
+</body>
+</html>
