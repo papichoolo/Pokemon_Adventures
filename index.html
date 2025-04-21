@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -477,6 +477,539 @@
             }, 400); // Match modal transition duration (slightly longer if needed)
         }
 
+
+        // --- Event Listeners ---
+        window.addEventListener('scroll', () => {
+            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+            if (clientHeight + scrollTop >= scrollHeight - 350 && !isLoading) {
+                fetchPokemonBatch(currentOffset, BATCH_SIZE);
+            }
+        });
+        hudCloseButton.addEventListener('click', hideStatsHud);
+        hudOverlay.addEventListener('click', hideStatsHud);
+        statsHud.addEventListener('click', (event) => { event.stopPropagation(); });
+        window.addEventListener('keydown', (event) => { if (event.key === 'Escape' && statsHud.classList.contains('visible')) { hideStatsHud(); } });
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', () => { fetchPokemonBatch(currentOffset, BATCH_SIZE); });
+
+    </script>
+
+</body>
+</html>
+ -->
+
+
+
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon Grid - Futuristic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --accent-color: #38bdf8; /* Sky 400 */
+            --accent-color-darker: #0ea5e9; /* Sky 500 */
+            --bg-dark-start: #0f172a; /* Slate 900 */
+            --bg-dark-end: #1e293b; /* Slate 800 */
+            --text-main: #e2e8f0; /* Slate 200 */
+            --text-secondary: #94a3b8; /* Slate 400 */
+            --card-bg: rgba(30, 41, 59, 0.7); /* Slate 800 with alpha */
+            --card-border: rgba(56, 189, 248, 0.2); /* Sky 400 with alpha */
+            --card-hover-border: var(--accent-color);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark-start) 0%, var(--bg-dark-end) 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Main Title */
+        .main-title {
+            color: #f8fafc; /* Slate 50 */
+            text-shadow: 0 0 15px rgba(56, 189, 248, 0.3); /* Subtle glow */
+        }
+
+        /* Grid container */
+        .pokemon-grid {
+            display: grid;
+            gap: 1.25rem;
+            padding: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        }
+
+        /* Individual Pokemon cell - Glassmorphism */
+        .pokemon-cell {
+            background-color: var(--card-bg);
+            backdrop-filter: blur(10px); /* Glass effect */
+            border-radius: 0.75rem;
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s var(--transition-smooth), box-shadow 0.3s var(--transition-smooth), border-color 0.3s var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            min-height: 190px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .pokemon-cell:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.15);
+            border-color: var(--card-hover-border);
+        }
+        .pokemon-cell:hover .cell-image {
+            transform: scale(1.1);
+        }
+
+        /* Cell Image */
+        .cell-image-container {
+             flex-grow: 1; display: flex; justify-content: center; align-items: center;
+             margin-bottom: 0.75rem; min-height: 100px;
+        }
+        .cell-image {
+            width: 85px; height: 85px; object-fit: contain;
+            image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges;
+            loading: lazy;
+            transition: transform 0.3s var(--transition-smooth);
+        }
+
+        /* Cell Text */
+        .cell-name { font-size: 1rem; font-weight: 500; color: var(--text-main); text-transform: capitalize; margin-top: auto; }
+        .cell-id { font-size: 0.8rem; color: var(--text-secondary); }
+
+        /* Loading indicator */
+        #loader { text-align: center; padding: 2.5rem; font-size: 1.1rem; font-weight: 500; color: var(--text-secondary); display: none; }
+        #loader.visible { display: block; }
+
+        /* Entrance animation for grid cells (staggered) */
+        @keyframes cellEnter {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .cell-enter-animation {
+            animation: cellEnter 0.6s var(--transition-smooth) forwards;
+            opacity: 0; /* Start hidden */
+        }
+
+        /* --- Stats HUD (Modal) Styles --- */
+        .hud-overlay {
+            position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(6px); z-index: 40; opacity: 0;
+            transition: opacity 0.35s var(--transition-smooth);
+        }
+        .hud-overlay.visible { opacity: 1; }
+
+        .stats-hud {
+            position: fixed; top: 50%; left: 50%;
+            background-color: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 1rem; padding: 1.75rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            z-index: 50; width: 90%; max-width: 450px; /* Slightly wider for more stats */
+            max-height: 90vh; /* Prevent overflow on small screens */
+            overflow-y: auto; /* Allow scrolling if content overflows */
+            opacity: 0;
+            transform: translate(-50%, -45%) scale(0.95);
+            transform-origin: center center;
+            transition: opacity 0.35s var(--transition-smooth), transform 0.35s var(--transition-smooth);
+        }
+         .stats-hud.visible {
+             opacity: 1;
+             transform: translate(-50%, -50%) scale(1);
+         }
+
+        /* HUD Content & Animations */
+        .hud-section {
+             opacity: 0; transform: translateY(10px);
+        }
+        .stats-hud.visible .hud-section { animation: hudElementFadeInSlide 0.5s var(--transition-smooth) forwards; }
+        /* Apply staggered delays via JS if needed, or use CSS nth-child (simpler here) */
+        .stats-hud.visible .hud-section:nth-child(1) { animation-delay: 0.1s; } /* Image */
+        .stats-hud.visible .hud-section:nth-child(2) { animation-delay: 0.15s; } /* Name */
+        .stats-hud.visible .hud-section:nth-child(3) { animation-delay: 0.2s; } /* ID */
+        .stats-hud.visible .hud-section:nth-child(4) { animation-delay: 0.25s; } /* Genus */
+        .stats-hud.visible .hud-section:nth-child(5) { animation-delay: 0.3s; } /* Types */
+        .stats-hud.visible .hud-section:nth-child(6) { animation-delay: 0.35s; } /* Stats Container */
+        .stats-hud.visible .hud-section:nth-child(7) { animation-delay: 0.4s; } /* Abilities Container */
+        .stats-hud.visible .hud-section:nth-child(8) { animation-delay: 0.45s; } /* Extra Info (H/W/Exp/Cap) */
+
+
+        .hud-image { width: 130px; height: 130px; object-fit: contain; image-rendering: pixelated; margin: 0 auto 0.75rem auto; display: block; } /* Reduced margin */
+        .hud-name { font-size: 2rem; font-weight: 700; text-align: center; text-transform: capitalize; color: #f8fafc; }
+        .hud-id { font-size: 1rem; text-align: center; color: var(--text-secondary); margin-bottom: 0.25rem; } /* Reduced margin */
+        .hud-genus { font-size: 0.9rem; font-style: italic; text-align: center; color: var(--text-secondary); margin-bottom: 1rem; }
+        .hud-types { text-align: center; margin-bottom: 1.25rem; }
+
+        .hud-stats-container, .hud-abilities-container {
+            background-color: rgba(15, 23, 42, 0.6); border-radius: 0.75rem;
+            padding: 1rem; margin-bottom: 1rem; border: 1px solid rgba(56, 189, 248, 0.15);
+        }
+        .hud-section-title { /* Renamed from hud-stats-title */
+            font-size: 1.1rem; font-weight: 600; color: var(--text-main); text-align: center;
+            margin-bottom: 1rem; border-bottom: 1px solid rgba(56, 189, 248, 0.2); padding-bottom: 0.6rem;
+        }
+         .hud-abilities-list {
+             font-size: 0.9rem; color: var(--text-main); text-align: center;
+             line-height: 1.6; text-transform: capitalize;
+         }
+         .hud-abilities-list span { display: block; } /* Each ability on new line */
+         .hud-abilities-list .hidden-ability { color: var(--text-secondary); font-style: italic; } /* Style hidden ability */
+
+        .hud-extra-info { /* Container for H/W/Exp/Cap */
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Two columns */
+            gap: 0.5rem 1rem; /* Row and column gap */
+            font-size: 0.9rem; color: var(--text-secondary); text-align: center;
+            background-color: rgba(15, 23, 42, 0.6); border-radius: 0.75rem;
+            padding: 0.75rem; border: 1px solid rgba(56, 189, 248, 0.15);
+        }
+         .hud-extra-info span { color: var(--text-main); font-weight: 500; } /* Highlight value */
+
+
+        /* Keyframes for HUD element entrance */
+        @keyframes hudElementFadeInSlide { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes hudElementFadeInScale { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+        /* Apply base animation to hud-section */
+        .stats-hud.visible .hud-image { animation: hudElementFadeInScale 0.5s var(--transition-smooth) forwards; animation-delay: inherit; }
+
+
+        /* Close Button */
+        .hud-close-button {
+            position: absolute; top: 1rem; right: 1rem; background-color: rgba(51, 65, 85, 0.7);
+            border-radius: 9999px; padding: 0.4rem; line-height: 1; cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.3s var(--transition-smooth); z-index: 51; /* Ensure button is above content */
+        }
+        .hud-close-button:hover { background-color: rgba(71, 85, 105, 0.8); transform: rotate(90deg) scale(1.1); }
+        .hud-close-button svg { width: 1.1rem; height: 1.1rem; color: var(--text-main); }
+
+        /* Type Badges */
+        .type-badge {
+            display: inline-block; padding: 0.3rem 0.8rem; border-radius: 9999px;
+            font-size: 0.85rem; font-weight: 600; text-transform: capitalize;
+            margin: 0 0.3rem; color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);
+        }
+        /* Type Colors */
+        .type-normal { background-color: #A8A77A; } .type-fire { background-color: #EE8130; } .type-water { background-color: #6390F0; }
+        .type-electric { background-color: #F7D02C; } .type-grass { background-color: #7AC74C; } .type-ice { background-color: #96D9D6; }
+        .type-fighting { background-color: #C22E28; } .type-poison { background-color: #A33EA1; } .type-ground { background-color: #E2BF65; }
+        .type-flying { background-color: #A98FF3; } .type-psychic { background-color: #F95587; } .type-bug { background-color: #A6B91A; }
+        .type-rock { background-color: #B6A136; } .type-ghost { background-color: #735797; } .type-dragon { background-color: #6F35FC; }
+        .type-dark { background-color: #705746; } .type-steel { background-color: #B7B7CE; } .type-fairy { background-color: #D685AD; }
+
+        /* Stat Bars */
+        .stat-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.4rem; }
+        .stat-name { width: 35%; font-weight: 500; color: var(--text-secondary); text-transform: capitalize; }
+        .stat-bar-container { width: 65%; display: flex; align-items: center; }
+        .stat-bar-bg { background-color: rgba(15, 23, 42, 0.5); border-radius: 6px; overflow: hidden; height: 0.7rem; flex-grow: 1; margin-right: 0.6rem; }
+        .stat-bar { height: 100%; border-radius: 6px; transition: width 0.7s var(--transition-smooth) 0.2s; width: 0%; background: linear-gradient(to right, var(--accent-color), var(--accent-color-darker)); }
+        .stat-value { font-weight: 600; color: var(--text-main); width: 35px; text-align: right; font-size: 0.85rem; }
+
+    </style>
+</head>
+<body>
+
+    <h1 class="main-title text-4xl font-bold text-center my-8 tracking-tight">Pokémon Grid</h1>
+
+    <div id="pokemon-grid" class="pokemon-grid max-w-7xl mx-auto"> </div>
+
+    <div id="loader"> <p>Loading more Pokémon...</p> </div>
+
+    <div id="hud-overlay" class="hud-overlay hidden" aria-hidden="true"></div>
+    <div id="stats-hud" class="stats-hud hidden" role="dialog" aria-modal="true" aria-labelledby="hud-pokemon-name" aria-hidden="true">
+        <button id="hud-close-button" class="hud-close-button" aria-label="Close">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /> </svg>
+        </button>
+
+        <div class="hud-section">
+            <img id="hud-pokemon-image" src="https://placehold.co/130x130/334155/94a3b8?text=?" alt="Pokemon Image" class="hud-image" onerror="this.onerror=null; this.src='https://placehold.co/130x130/334155/94a3b8?text=Err';">
+        </div>
+        <div class="hud-section">
+            <h2 id="hud-pokemon-name" class="hud-name">Pokemon Name</h2>
+        </div>
+        <div class="hud-section">
+            <p id="hud-pokemon-id" class="hud-id">#000</p>
+        </div>
+        <div class="hud-section">
+            <p id="hud-pokemon-genus" class="hud-genus">Genus</p> </div>
+        <div class="hud-section">
+            <div id="hud-pokemon-types" class="hud-types"> </div>
+        </div>
+        <div class="hud-section">
+            <div class="hud-stats-container">
+                <h3 class="hud-section-title">Base Stats</h3> <div id="hud-pokemon-stats"> </div>
+            </div>
+        </div>
+        <div class="hud-section">
+            <div class="hud-abilities-container"> <h3 class="hud-section-title">Abilities</h3>
+                <div id="hud-pokemon-abilities" class="hud-abilities-list"> </div>
+            </div>
+        </div>
+        <div class="hud-section">
+            <div class="hud-extra-info"> <div id="hud-pokemon-height">Height: <span>--</span> m</div>
+                <div id="hud-pokemon-weight">Weight: <span>--</span> kg</div>
+                <div id="hud-pokemon-base-exp">Base Exp: <span>--</span></div>
+                <div id="hud-pokemon-capture-rate">Capture Rate: <span>--</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const gridContainer = document.getElementById('pokemon-grid');
+        const loader = document.getElementById('loader');
+        const hudOverlay = document.getElementById('hud-overlay');
+        const statsHud = document.getElementById('stats-hud');
+        const hudCloseButton = document.getElementById('hud-close-button');
+        // HUD Content Elements
+        const hudPokemonImage = document.getElementById('hud-pokemon-image');
+        const hudPokemonName = document.getElementById('hud-pokemon-name');
+        const hudPokemonId = document.getElementById('hud-pokemon-id');
+        const hudPokemonGenus = document.getElementById('hud-pokemon-genus'); // New
+        const hudPokemonTypes = document.getElementById('hud-pokemon-types');
+        const hudPokemonStats = document.getElementById('hud-pokemon-stats');
+        const hudPokemonAbilities = document.getElementById('hud-pokemon-abilities'); // New
+        const hudPokemonHeight = document.getElementById('hud-pokemon-height').querySelector('span'); // Target span for value
+        const hudPokemonWeight = document.getElementById('hud-pokemon-weight').querySelector('span'); // Target span for value
+        const hudPokemonBaseExp = document.getElementById('hud-pokemon-base-exp').querySelector('span'); // New
+        const hudPokemonCaptureRate = document.getElementById('hud-pokemon-capture-rate').querySelector('span'); // New
+
+
+        // API and State Variables
+        const POKEAPI_BASE_URL = 'https://pokeapi.co/api/v2/';
+        const BATCH_SIZE = 30;
+        let currentOffset = 0;
+        let isLoading = false;
+        let totalPokemonCount = 0;
+        let pokemonDataCache = {}; // Cache now includes species data
+        let cellAnimationCounter = 0;
+
+        // --- Functions ---
+
+        /** Fetches detailed data (Pokemon + Species) for a single Pokemon. Caches results. */
+        async function fetchPokemonDetails(url) {
+            // Use pokemon URL as the primary cache key
+            const cacheKey = url;
+            if (pokemonDataCache[cacheKey]) { return pokemonDataCache[cacheKey]; }
+
+            try {
+                // Fetch main Pokemon data
+                const response = await fetch(url);
+                if (!response.ok) { console.error(`Failed fetch ${url}: ${response.status}`); return null; }
+                const data = await response.json();
+
+                // Fetch species data
+                let speciesData = null;
+                if (data.species && data.species.url) {
+                    try {
+                        const speciesResponse = await fetch(data.species.url);
+                        if (speciesResponse.ok) {
+                            speciesData = await speciesResponse.json();
+                        } else {
+                             console.error(`Failed fetch species ${data.species.url}: ${speciesResponse.status}`);
+                        }
+                    } catch (speciesError) {
+                         console.error(`Error fetching species ${data.species.url}:`, speciesError);
+                    }
+                }
+
+                // Combine data and cache it
+                const combinedData = { ...data, speciesData }; // Add species data under speciesData key
+                pokemonDataCache[cacheKey] = combinedData;
+                return combinedData;
+
+            } catch (error) { console.error(`Error fetching ${url}:`, error); return null; }
+        }
+
+
+        /** Fetches a batch of Pokemon data (list + details). */
+        async function fetchPokemonBatch(offset, limit) {
+            if (isLoading || (totalPokemonCount > 0 && offset >= totalPokemonCount)) { return; }
+            isLoading = true;
+            loader.classList.add('visible');
+            cellAnimationCounter = 0;
+
+            try {
+                const listResponse = await fetch(`${POKEAPI_BASE_URL}pokemon?offset=${offset}&limit=${limit}`);
+                if (!listResponse.ok) throw new Error(`List fetch failed: ${listResponse.status}`);
+                const listData = await listResponse.json();
+
+                if (totalPokemonCount === 0) { totalPokemonCount = listData.count; console.log(`Total Pokemon: ${totalPokemonCount}`); }
+
+                const detailPromises = listData.results.map(p => fetchPokemonDetails(p.url));
+                const detailedPokemonData = await Promise.all(detailPromises);
+
+                detailedPokemonData.forEach(data => { if (data) { displayPokemonInCell(data); } });
+                currentOffset += limit;
+
+            } catch (error) { console.error("Batch fetch error:", error); loader.textContent = "Failed to load."; }
+            finally {
+                isLoading = false;
+                if (currentOffset < totalPokemonCount) { loader.classList.remove('visible'); }
+                else { loader.textContent = "All Pokémon loaded!"; loader.classList.add('visible'); }
+            }
+        }
+
+        /** Creates and appends a Pokemon cell to the grid with staggered animation. */
+        function displayPokemonInCell(data) {
+            const cell = document.createElement('div');
+            cell.className = 'pokemon-cell cell-enter-animation';
+
+            const delay = (cellAnimationCounter % BATCH_SIZE) * 50;
+            cell.style.animationDelay = `${delay}ms`;
+            cellAnimationCounter++;
+
+            const animatedSprite = data.sprites.versions?.['generation-v']?.['black-white']?.animated?.front_default;
+            const defaultSprite = data.sprites.front_default;
+            const spriteUrl = animatedSprite || defaultSprite || 'https://placehold.co/85x85/64748b/e2e8f0?text=?';
+
+            cell.innerHTML = `
+                <div class="cell-image-container">
+                    <img src="${spriteUrl}" alt="${data.name}" class="cell-image" onerror="this.onerror=null; this.src='https://placehold.co/85x85/64748b/e2e8f0?text=Err';">
+                </div>
+                <div>
+                    <p class="cell-name">${data.name}</p>
+                    <p class="cell-id">#${String(data.id).padStart(3, '0')}</p>
+                </div>
+            `;
+
+            // Pass the combined data (including speciesData) to the HUD function
+            cell.addEventListener('click', () => { showStatsHud(data); });
+            gridContainer.appendChild(cell);
+        }
+
+        /** Shows the Stats HUD Modal with specific Pokemon data and animations. */
+        function showStatsHud(data) {
+            if (!data) return;
+
+            // --- Populate HUD content ---
+            hudPokemonName.textContent = data.name;
+            hudPokemonId.textContent = `#${String(data.id).padStart(3, '0')}`;
+            const animatedSprite = data.sprites.versions?.['generation-v']?.['black-white']?.animated?.front_default;
+            const officialArt = data.sprites.other?.['official-artwork']?.front_default;
+            const defaultSprite = data.sprites.front_default;
+            hudPokemonImage.src = animatedSprite || officialArt || defaultSprite || 'https://placehold.co/130x130/334155/94a3b8?text=?';
+            hudPokemonImage.alt = data.name;
+
+            // Genus (from speciesData)
+            const genusEntry = data.speciesData?.genera?.find(g => g.language.name === 'en');
+            hudPokemonGenus.textContent = genusEntry ? genusEntry.genus : 'Unknown Genus';
+
+            // Types
+            hudPokemonTypes.innerHTML = '';
+            if (data.types && data.types.length > 0) {
+                data.types.forEach(typeInfo => { /* ... create badges ... */
+                    const typeName = typeInfo.type.name; const typeBadge = document.createElement('span');
+                    typeBadge.textContent = typeName; typeBadge.className = `type-badge type-${typeName}`;
+                    hudPokemonTypes.appendChild(typeBadge); });
+            } else { hudPokemonTypes.innerHTML = '<span class="text-slate-400 text-xs">No types</span>'; }
+
+            // Stats
+            hudPokemonStats.innerHTML = '';
+            const statNameMapping = { 'hp': 'HP', 'attack': 'Attack', 'defense': 'Defense', 'special-attack': 'Sp. Atk', 'special-defense': 'Sp. Def', 'speed': 'Speed' };
+            const MAX_STAT_VALUE = 255;
+            if (data.stats && data.stats.length > 0) {
+                data.stats.forEach(statInfo => { /* ... create stat rows ... */
+                    const statName = statInfo.stat.name; const statValue = statInfo.base_stat;
+                    const displayName = statNameMapping[statName] || statName; const statRow = document.createElement('div');
+                    statRow.className = 'stat-row'; const nameSpan = document.createElement('span'); nameSpan.textContent = displayName; nameSpan.className = 'stat-name';
+                    const barContainer = document.createElement('div'); barContainer.className = 'stat-bar-container';
+                    const barBg = document.createElement('div'); barBg.className = 'stat-bar-bg'; const barFg = document.createElement('div'); barFg.className = 'stat-bar';
+                    const valueSpan = document.createElement('span'); valueSpan.textContent = statValue; valueSpan.className = 'stat-value';
+                    barBg.appendChild(barFg); barContainer.appendChild(barBg); barContainer.appendChild(valueSpan);
+                    statRow.appendChild(nameSpan); statRow.appendChild(barContainer); hudPokemonStats.appendChild(statRow); });
+            } else { hudPokemonStats.innerHTML = '<p class="text-slate-400 text-center text-xs py-2">No stats found.</p>'; }
+
+             // Abilities
+            hudPokemonAbilities.innerHTML = '';
+            if (data.abilities && data.abilities.length > 0) {
+                data.abilities.forEach(abilityInfo => {
+                    const abilityName = abilityInfo.ability.name.replace('-', ' ');
+                    const abilitySpan = document.createElement('span');
+                    abilitySpan.textContent = abilityName;
+                    if (abilityInfo.is_hidden) {
+                        abilitySpan.classList.add('hidden-ability');
+                        abilitySpan.textContent += ' (Hidden)';
+                    }
+                    hudPokemonAbilities.appendChild(abilitySpan);
+                });
+            } else { hudPokemonAbilities.innerHTML = '<span>No abilities listed.</span>'; }
+
+
+            // Extra Info (H/W/Exp/Cap)
+            hudPokemonHeight.textContent = (data.height / 10).toFixed(1);
+            hudPokemonWeight.textContent = (data.weight / 10).toFixed(1);
+            hudPokemonBaseExp.textContent = data.base_experience ?? '--';
+            hudPokemonCaptureRate.textContent = data.speciesData?.capture_rate ?? '--';
+            // --- End Populate HUD content ---
+
+
+            // Reset animations before showing
+            const animatedElements = statsHud.querySelectorAll('.hud-section');
+            animatedElements.forEach(el => { el.style.opacity = '0'; el.style.transform = 'translateY(10px)'; }); // Explicit reset
+            const statBars = statsHud.querySelectorAll('.stat-bar');
+            statBars.forEach(bar => bar.style.width = '0%');
+
+
+            // Show the HUD and overlay
+            hudOverlay.classList.remove('hidden');
+            statsHud.classList.remove('hidden');
+            hudOverlay.setAttribute('aria-hidden', 'false');
+            statsHud.setAttribute('aria-hidden', 'false');
+            statsHud.scrollTop = 0; // Scroll to top when opening
+
+            // Trigger layout and add 'visible' class for transitions/animations
+            requestAnimationFrame(() => {
+                 hudOverlay.classList.add('visible');
+                 statsHud.classList.add('visible');
+                 // Trigger stat bar animation after modal is visible
+                 setTimeout(() => {
+                     const statBars = statsHud.querySelectorAll('.stat-bar');
+                     statBars.forEach(bar => {
+                         const row = bar.closest('.stat-row');
+                         const valueSpan = row?.querySelector('.stat-value');
+                         if(valueSpan) {
+                             const statValue = parseInt(valueSpan.textContent || '0', 10);
+                             const percentage = Math.min(100, (statValue / MAX_STAT_VALUE) * 100);
+                             bar.style.width = `${percentage}%`;
+                         }
+                     });
+                 }, 150);
+            });
+
+            hudCloseButton.focus();
+        }
+
+        /** Hides the Stats HUD Modal. */
+        function hideStatsHud() {
+            hudOverlay.classList.remove('visible');
+            statsHud.classList.remove('visible');
+            hudOverlay.setAttribute('aria-hidden', 'true');
+            statsHud.setAttribute('aria-hidden', 'true');
+
+            setTimeout(() => {
+                hudOverlay.classList.add('hidden');
+                statsHud.classList.add('hidden');
+                const statBars = statsHud.querySelectorAll('.stat-bar');
+                statBars.forEach(bar => bar.style.width = '0%');
+                // Reset styles for elements for next animation replay
+                 const animatedElements = statsHud.querySelectorAll('.hud-section');
+                 animatedElements.forEach(el => { el.style.opacity = ''; el.style.transform = ''; });
+
+            }, 350);
+        }
 
         // --- Event Listeners ---
         window.addEventListener('scroll', () => {
