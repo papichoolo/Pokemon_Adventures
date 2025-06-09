@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -9,14 +9,14 @@
     <style>
         :root {
             --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
-            --accent-color: #38bdf8; /* Sky 400 */
-            --accent-color-darker: #0ea5e9; /* Sky 500 */
-            --bg-dark-start: #0f172a; /* Slate 900 */
-            --bg-dark-end: #1e293b; /* Slate 800 */
-            --text-main: #e2e8f0; /* Slate 200 */
-            --text-secondary: #94a3b8; /* Slate 400 */
-            --card-bg: rgba(30, 41, 59, 0.7); /* Slate 800 with alpha */
-            --card-border: rgba(56, 189, 248, 0.2); /* Sky 400 with alpha */
+            --accent-color: #38bdf8;
+            --accent-color-darker: #0ea5e9;
+            --bg-dark-start: #0f172a;
+            --bg-dark-end: #1e293b;
+            --text-main: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-border: rgba(56, 189, 248, 0.2);
             --card-hover-border: var(--accent-color);
         }
 
@@ -28,13 +28,11 @@
             overflow-x: hidden;
         }
 
-        /* Main Title */
         .main-title {
-            color: #f8fafc; /* Slate 50 */
-            text-shadow: 0 0 15px rgba(56, 189, 248, 0.3); /* Subtle glow */
+            color: #f8fafc;
+            text-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
         }
 
-        /* Grid container */
         .pokemon-grid {
             display: grid;
             gap: 1.25rem;
@@ -42,10 +40,9 @@
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
         }
 
-        /* Individual Pokemon cell - Glassmorphism */
         .pokemon-cell {
             background-color: var(--card-bg);
-            backdrop-filter: blur(10px); /* Glass effect */
+            backdrop-filter: blur(10px);
             border-radius: 0.75rem;
             padding: 1rem;
             text-align: center;
@@ -69,7 +66,6 @@
             transform: scale(1.1);
         }
 
-        /* Cell Image */
         .cell-image-container {
              flex-grow: 1; display: flex; justify-content: center; align-items: center;
              margin-bottom: 0.75rem; min-height: 100px;
@@ -81,25 +77,21 @@
             transition: transform 0.3s var(--transition-smooth);
         }
 
-        /* Cell Text */
         .cell-name { font-size: 1rem; font-weight: 500; color: var(--text-main); text-transform: capitalize; margin-top: auto; }
         .cell-id { font-size: 0.8rem; color: var(--text-secondary); }
 
-        /* Loading indicator */
         #loader { text-align: center; padding: 2.5rem; font-size: 1.1rem; font-weight: 500; color: var(--text-secondary); display: none; }
         #loader.visible { display: block; }
 
-        /* Entrance animation for grid cells (staggered) */
         @keyframes cellEnter {
             from { opacity: 0; transform: translateY(20px) scale(0.95); }
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
         .cell-enter-animation {
             animation: cellEnter 0.6s var(--transition-smooth) forwards;
-            opacity: 0; /* Start hidden */
+            opacity: 0;
         }
 
-        /* --- Stats HUD (Modal) Styles --- */
         .hud-overlay {
             position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.8);
             backdrop-filter: blur(6px); z-index: 40; opacity: 0;
@@ -114,9 +106,9 @@
             border: 1px solid rgba(56, 189, 248, 0.3);
             border-radius: 1rem; padding: 1.75rem;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            z-index: 50; width: 90%; max-width: 450px; /* Slightly wider for more stats */
-            max-height: 90vh; /* Prevent overflow on small screens */
-            overflow-y: auto; /* Allow scrolling if content overflows */
+            z-index: 50; width: 95%; max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
             opacity: 0;
             transform: translate(-50%, -45%) scale(0.95);
             transform-origin: center center;
@@ -127,33 +119,31 @@
              transform: translate(-50%, -50%) scale(1);
          }
 
-        /* HUD Content & Animations */
         .hud-section {
              opacity: 0; transform: translateY(10px);
         }
         .stats-hud.visible .hud-section { animation: hudElementFadeInSlide 0.5s var(--transition-smooth) forwards; }
-        /* Apply staggered delays via JS if needed, or use CSS nth-child (simpler here) */
-        .stats-hud.visible .hud-section:nth-child(1) { animation-delay: 0.1s; } /* Image */
-        .stats-hud.visible .hud-section:nth-child(2) { animation-delay: 0.15s; } /* Name */
-        .stats-hud.visible .hud-section:nth-child(3) { animation-delay: 0.2s; } /* ID */
-        .stats-hud.visible .hud-section:nth-child(4) { animation-delay: 0.25s; } /* Genus */
-        .stats-hud.visible .hud-section:nth-child(5) { animation-delay: 0.3s; } /* Types */
-        .stats-hud.visible .hud-section:nth-child(6) { animation-delay: 0.35s; } /* Stats Container */
-        .stats-hud.visible .hud-section:nth-child(7) { animation-delay: 0.4s; } /* Abilities Container */
-        .stats-hud.visible .hud-section:nth-child(8) { animation-delay: 0.45s; } /* Extra Info (H/W/Exp/Cap) */
+        .stats-hud.visible .hud-section:nth-child(1) { animation-delay: 0.1s; }
+        .stats-hud.visible .hud-section:nth-child(2) { animation-delay: 0.15s; }
+        .stats-hud.visible .hud-section:nth-child(3) { animation-delay: 0.2s; }
+        .stats-hud.visible .hud-section:nth-child(4) { animation-delay: 0.25s; }
+        .stats-hud.visible .hud-section:nth-child(5) { animation-delay: 0.3s; }
+        .stats-hud.visible .hud-section:nth-child(6) { animation-delay: 0.35s; }
+        .stats-hud.visible .hud-section:nth-child(7) { animation-delay: 0.4s; }
+        .stats-hud.visible .hud-section:nth-child(8) { animation-delay: 0.45s; }
+        .stats-hud.visible .hud-section:nth-child(9) { animation-delay: 0.5s; }
 
-
-        .hud-image { width: 130px; height: 130px; object-fit: contain; image-rendering: pixelated; margin: 0 auto 0.75rem auto; display: block; } /* Reduced margin */
+        .hud-image { width: 130px; height: 130px; object-fit: contain; image-rendering: pixelated; margin: 0 auto 0.75rem auto; display: block; }
         .hud-name { font-size: 2rem; font-weight: 700; text-align: center; text-transform: capitalize; color: #f8fafc; }
-        .hud-id { font-size: 1rem; text-align: center; color: var(--text-secondary); margin-bottom: 0.25rem; } /* Reduced margin */
+        .hud-id { font-size: 1rem; text-align: center; color: var(--text-secondary); margin-bottom: 0.25rem; }
         .hud-genus { font-size: 0.9rem; font-style: italic; text-align: center; color: var(--text-secondary); margin-bottom: 1rem; }
         .hud-types { text-align: center; margin-bottom: 1.25rem; }
 
-        .hud-stats-container, .hud-abilities-container {
+        .hud-stats-container, .hud-abilities-container, .hud-moves-container {
             background-color: rgba(15, 23, 42, 0.6); border-radius: 0.75rem;
             padding: 1rem; margin-bottom: 1rem; border: 1px solid rgba(56, 189, 248, 0.15);
         }
-        .hud-section-title { /* Renamed from hud-stats-title */
+        .hud-section-title {
             font-size: 1.1rem; font-weight: 600; color: var(--text-main); text-align: center;
             margin-bottom: 1rem; border-bottom: 1px solid rgba(56, 189, 248, 0.2); padding-bottom: 0.6rem;
         }
@@ -161,44 +151,65 @@
              font-size: 0.9rem; color: var(--text-main); text-align: center;
              line-height: 1.6; text-transform: capitalize;
          }
-         .hud-abilities-list span { display: block; } /* Each ability on new line */
-         .hud-abilities-list .hidden-ability { color: var(--text-secondary); font-style: italic; } /* Style hidden ability */
+         .hud-abilities-list span { display: block; }
+         .hud-abilities-list .hidden-ability { color: var(--text-secondary); font-style: italic; }
 
-        .hud-extra-info { /* Container for H/W/Exp/Cap */
+        .hud-extra-info {
             display: grid;
-            grid-template-columns: 1fr 1fr; /* Two columns */
-            gap: 0.5rem 1rem; /* Row and column gap */
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem 1rem;
             font-size: 0.9rem; color: var(--text-secondary); text-align: center;
             background-color: rgba(15, 23, 42, 0.6); border-radius: 0.75rem;
             padding: 0.75rem; border: 1px solid rgba(56, 189, 248, 0.15);
         }
-         .hud-extra-info span { color: var(--text-main); font-weight: 500; } /* Highlight value */
+         .hud-extra-info span { color: var(--text-main); font-weight: 500; }
 
+        .hud-moves-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 0.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .move-item {
+            background-color: rgba(51, 65, 85, 0.4);
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.85rem;
+            color: var(--text-main);
+            text-transform: capitalize;
+            border: 1px solid rgba(56, 189, 248, 0.1);
+            transition: all 0.2s var(--transition-smooth);
+        }
+        .move-item:hover {
+            background-color: rgba(56, 189, 248, 0.2);
+            border-color: rgba(56, 189, 248, 0.3);
+            transform: translateY(-1px);
+        }
+        .move-level {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
 
-        /* Keyframes for HUD element entrance */
         @keyframes hudElementFadeInSlide { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes hudElementFadeInScale { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
-        /* Apply base animation to hud-section */
         .stats-hud.visible .hud-image { animation: hudElementFadeInScale 0.5s var(--transition-smooth) forwards; animation-delay: inherit; }
 
-
-        /* Close Button */
         .hud-close-button {
             position: absolute; top: 1rem; right: 1rem; background-color: rgba(51, 65, 85, 0.7);
             border-radius: 9999px; padding: 0.4rem; line-height: 1; cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.3s var(--transition-smooth); z-index: 51; /* Ensure button is above content */
+            transition: background-color 0.2s ease, transform 0.3s var(--transition-smooth); z-index: 51;
         }
         .hud-close-button:hover { background-color: rgba(71, 85, 105, 0.8); transform: rotate(90deg) scale(1.1); }
         .hud-close-button svg { width: 1.1rem; height: 1.1rem; color: var(--text-main); }
 
-        /* Type Badges */
         .type-badge {
             display: inline-block; padding: 0.3rem 0.8rem; border-radius: 9999px;
             font-size: 0.85rem; font-weight: 600; text-transform: capitalize;
             margin: 0 0.3rem; color: white;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);
         }
-        /* Type Colors */
         .type-normal { background-color: #A8A77A; } .type-fire { background-color: #EE8130; } .type-water { background-color: #6390F0; }
         .type-electric { background-color: #F7D02C; } .type-grass { background-color: #7AC74C; } .type-ice { background-color: #96D9D6; }
         .type-fighting { background-color: #C22E28; } .type-poison { background-color: #A33EA1; } .type-ground { background-color: #E2BF65; }
@@ -206,7 +217,6 @@
         .type-rock { background-color: #B6A136; } .type-ghost { background-color: #735797; } .type-dragon { background-color: #6F35FC; }
         .type-dark { background-color: #705746; } .type-steel { background-color: #B7B7CE; } .type-fairy { background-color: #D685AD; }
 
-        /* Stat Bars */
         .stat-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.4rem; }
         .stat-name { width: 35%; font-weight: 500; color: var(--text-secondary); text-transform: capitalize; }
         .stat-bar-container { width: 65%; display: flex; align-items: center; }
@@ -261,6 +271,12 @@
                 <div id="hud-pokemon-capture-rate">Capture Rate: <span>--</span></div>
             </div>
         </div>
+        <div class="hud-section">
+            <div class="hud-moves-container">
+                <h3 class="hud-section-title">Latest Movepool</h3>
+                <div id="hud-pokemon-moves" class="hud-moves-list"> </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -274,15 +290,15 @@
         const hudPokemonImage = document.getElementById('hud-pokemon-image');
         const hudPokemonName = document.getElementById('hud-pokemon-name');
         const hudPokemonId = document.getElementById('hud-pokemon-id');
-        const hudPokemonGenus = document.getElementById('hud-pokemon-genus'); // New
+        const hudPokemonGenus = document.getElementById('hud-pokemon-genus');
         const hudPokemonTypes = document.getElementById('hud-pokemon-types');
         const hudPokemonStats = document.getElementById('hud-pokemon-stats');
-        const hudPokemonAbilities = document.getElementById('hud-pokemon-abilities'); // New
-        const hudPokemonHeight = document.getElementById('hud-pokemon-height').querySelector('span'); // Target span for value
-        const hudPokemonWeight = document.getElementById('hud-pokemon-weight').querySelector('span'); // Target span for value
-        const hudPokemonBaseExp = document.getElementById('hud-pokemon-base-exp').querySelector('span'); // New
-        const hudPokemonCaptureRate = document.getElementById('hud-pokemon-capture-rate').querySelector('span'); // New
-
+        const hudPokemonAbilities = document.getElementById('hud-pokemon-abilities');
+        const hudPokemonHeight = document.getElementById('hud-pokemon-height').querySelector('span');
+        const hudPokemonWeight = document.getElementById('hud-pokemon-weight').querySelector('span');
+        const hudPokemonBaseExp = document.getElementById('hud-pokemon-base-exp').querySelector('span');
+        const hudPokemonCaptureRate = document.getElementById('hud-pokemon-capture-rate').querySelector('span');
+        const hudPokemonMoves = document.getElementById('hud-pokemon-moves');
 
         // API and State Variables
         const POKEAPI_BASE_URL = 'https://pokeapi.co/api/v2/';
@@ -290,14 +306,13 @@
         let currentOffset = 0;
         let isLoading = false;
         let totalPokemonCount = 0;
-        let pokemonDataCache = {}; // Cache now includes species data
+        let pokemonDataCache = {};
         let cellAnimationCounter = 0;
 
         // --- Functions ---
 
-        /** Fetches detailed data (Pokemon + Species) for a single Pokemon. Caches results. */
+        /** Fetches detailed data (Pokemon + Species + Moves) for a single Pokemon. Caches results. */
         async function fetchPokemonDetails(url) {
-            // Use pokemon URL as the primary cache key
             const cacheKey = url;
             if (pokemonDataCache[cacheKey]) { return pokemonDataCache[cacheKey]; }
 
@@ -322,14 +337,77 @@
                     }
                 }
 
+                // Process moves to get the latest movepool
+                const latestMoves = getLatestMovepool(data.moves);
+
                 // Combine data and cache it
-                const combinedData = { ...data, speciesData }; // Add species data under speciesData key
+                const combinedData = { ...data, speciesData, latestMoves };
                 pokemonDataCache[cacheKey] = combinedData;
                 return combinedData;
 
             } catch (error) { console.error(`Error fetching ${url}:`, error); return null; }
         }
 
+        /** Processes move data to get the latest movepool for a Pokemon */
+        function getLatestMovepool(moves) {
+            if (!moves || moves.length === 0) return [];
+
+            // Find the latest generation/game version
+            const movesByVersion = {};
+            moves.forEach(moveEntry => {
+                moveEntry.version_group_details.forEach(versionDetail => {
+                    const versionName = versionDetail.version_group.name;
+                    if (!movesByVersion[versionName]) {
+                        movesByVersion[versionName] = [];
+                    }
+                    
+                    movesByVersion[versionName].push({
+                        name: moveEntry.move.name,
+                        learnMethod: versionDetail.move_learn_method.name,
+                        levelLearned: versionDetail.level_learned_at
+                    });
+                });
+            });
+
+            // Define version priority (latest first)
+            const versionPriority = [
+                'scarlet-violet', 'sword-shield', 'lets-go-pikachu-lets-go-eevee',
+                'ultra-sun-ultra-moon', 'sun-moon', 'omega-ruby-alpha-sapphire',
+                'x-y', 'black-2-white-2', 'black-white', 'heartgold-soulsilver',
+                'platinum', 'diamond-pearl', 'emerald', 'firered-leafgreen',
+                'ruby-sapphire', 'crystal', 'gold-silver', 'yellow', 'red-blue'
+            ];
+
+            // Find the latest available version
+            let latestVersion = null;
+            for (const version of versionPriority) {
+                if (movesByVersion[version]) {
+                    latestVersion = version;
+                    break;
+                }
+            }
+
+            if (!latestVersion) {
+                // Fallback to any available version
+                latestVersion = Object.keys(movesByVersion)[0];
+            }
+
+            // Sort moves by learn method and level
+            const latestMoves = movesByVersion[latestVersion] || [];
+            return latestMoves.sort((a, b) => {
+                // Sort by learn method first (level-up, then others)
+                if (a.learnMethod === 'level-up' && b.learnMethod !== 'level-up') return -1;
+                if (a.learnMethod !== 'level-up' && b.learnMethod === 'level-up') return 1;
+                
+                // Then sort by level if both are level-up
+                if (a.learnMethod === 'level-up' && b.learnMethod === 'level-up') {
+                    return a.levelLearned - b.levelLearned;
+                }
+                
+                // Finally sort by name
+                return a.name.localeCompare(b.name);
+            });
+        }
 
         /** Fetches a batch of Pokemon data (list + details). */
         async function fetchPokemonBatch(offset, limit) {
@@ -382,7 +460,6 @@
                 </div>
             `;
 
-            // Pass the combined data (including speciesData) to the HUD function
             cell.addEventListener('click', () => { showStatsHud(data); });
             gridContainer.appendChild(cell);
         }
@@ -407,29 +484,40 @@
             // Types
             hudPokemonTypes.innerHTML = '';
             if (data.types && data.types.length > 0) {
-                data.types.forEach(typeInfo => { /* ... create badges ... */
-                    const typeName = typeInfo.type.name; const typeBadge = document.createElement('span');
-                    typeBadge.textContent = typeName; typeBadge.className = `type-badge type-${typeName}`;
-                    hudPokemonTypes.appendChild(typeBadge); });
-            } else { hudPokemonTypes.innerHTML = '<span class="text-slate-400 text-xs">No types</span>'; }
+                data.types.forEach(typeInfo => {
+                    const typeName = typeInfo.type.name; 
+                    const typeBadge = document.createElement('span');
+                    typeBadge.textContent = typeName; 
+                    typeBadge.className = `type-badge type-${typeName}`;
+                    hudPokemonTypes.appendChild(typeBadge);
+                });
+            }
 
-            // Stats
+            // Base Stats with animated bars
             hudPokemonStats.innerHTML = '';
-            const statNameMapping = { 'hp': 'HP', 'attack': 'Attack', 'defense': 'Defense', 'special-attack': 'Sp. Atk', 'special-defense': 'Sp. Def', 'speed': 'Speed' };
-            const MAX_STAT_VALUE = 255;
             if (data.stats && data.stats.length > 0) {
-                data.stats.forEach(statInfo => { /* ... create stat rows ... */
-                    const statName = statInfo.stat.name; const statValue = statInfo.base_stat;
-                    const displayName = statNameMapping[statName] || statName; const statRow = document.createElement('div');
-                    statRow.className = 'stat-row'; const nameSpan = document.createElement('span'); nameSpan.textContent = displayName; nameSpan.className = 'stat-name';
-                    const barContainer = document.createElement('div'); barContainer.className = 'stat-bar-container';
-                    const barBg = document.createElement('div'); barBg.className = 'stat-bar-bg'; const barFg = document.createElement('div'); barFg.className = 'stat-bar';
-                    const valueSpan = document.createElement('span'); valueSpan.textContent = statValue; valueSpan.className = 'stat-value';
-                    barBg.appendChild(barFg); barContainer.appendChild(barBg); barContainer.appendChild(valueSpan);
-                    statRow.appendChild(nameSpan); statRow.appendChild(barContainer); hudPokemonStats.appendChild(statRow); });
-            } else { hudPokemonStats.innerHTML = '<p class="text-slate-400 text-center text-xs py-2">No stats found.</p>'; }
+                data.stats.forEach(statInfo => {
+                    const statName = statInfo.stat.name.replace('-', ' ');
+                    const statValue = statInfo.base_stat;
+                    const maxStat = 255; // Max possible stat value
+                    const statPercentage = Math.min((statValue / maxStat) * 100, 100);
 
-             // Abilities
+                    const statRow = document.createElement('div');
+                    statRow.className = 'stat-row';
+                    statRow.innerHTML = `
+                        <div class="stat-name">${statName}</div>
+                        <div class="stat-bar-container">
+                            <div class="stat-bar-bg">
+                                <div class="stat-bar" style="width: ${statPercentage}%"></div>
+                            </div>
+                            <div class="stat-value">${statValue}</div>
+                        </div>
+                    `;
+                    hudPokemonStats.appendChild(statRow);
+                });
+            }
+
+            // Abilities
             hudPokemonAbilities.innerHTML = '';
             if (data.abilities && data.abilities.length > 0) {
                 data.abilities.forEach(abilityInfo => {
@@ -442,88 +530,93 @@
                     }
                     hudPokemonAbilities.appendChild(abilitySpan);
                 });
-            } else { hudPokemonAbilities.innerHTML = '<span>No abilities listed.</span>'; }
+            }
 
+            // Height, Weight, Base Exp, Capture Rate
+            hudPokemonHeight.textContent = data.height ? `${(data.height / 10).toFixed(1)}` : '--'; // convert decimetres to meters
+            hudPokemonWeight.textContent = data.weight ? `${(data.weight / 10).toFixed(1)}` : '--'; // convert hectograms to kilograms
+            hudPokemonBaseExp.textContent = data.base_experience || '--';
+            hudPokemonCaptureRate.textContent = data.speciesData?.capture_rate || '--';
 
-            // Extra Info (H/W/Exp/Cap)
-            hudPokemonHeight.textContent = (data.height / 10).toFixed(1);
-            hudPokemonWeight.textContent = (data.weight / 10).toFixed(1);
-            hudPokemonBaseExp.textContent = data.base_experience ?? '--';
-            hudPokemonCaptureRate.textContent = data.speciesData?.capture_rate ?? '--';
-            // --- End Populate HUD content ---
+            // Moves
+            hudPokemonMoves.innerHTML = '';
+            if (data.latestMoves && data.latestMoves.length > 0) {
+                data.latestMoves.slice(0, 20).forEach(move => { // Limit to 20 moves for brevity
+                    const moveItem = document.createElement('div');
+                    moveItem.className = 'move-item';
+                    let moveText = move.name.replace('-', ' ');
+                    if (move.learnMethod === 'level-up' && move.levelLearned > 0) {
+                        moveText += `<span class="move-level"> (Lvl ${move.levelLearned})</span>`;
+                    } else if (move.learnMethod === 'machine') {
+                        moveText += `<span class="move-level"> (TM/HM)</span>`;
+                    } else if (move.learnMethod === 'egg') {
+                        moveText += `<span class="move-level"> (Egg)</span>`;
+                    }
+                    moveItem.innerHTML = moveText;
+                    hudPokemonMoves.appendChild(moveItem);
+                });
+            } else {
+                hudPokemonMoves.innerHTML = '<p class="text-center text-gray-500 text-sm">No moves found for latest generation.</p>';
+            }
 
-
-            // Reset animations before showing
-            const animatedElements = statsHud.querySelectorAll('.hud-section');
-            animatedElements.forEach(el => { el.style.opacity = '0'; el.style.transform = 'translateY(10px)'; }); // Explicit reset
-            const statBars = statsHud.querySelectorAll('.stat-bar');
-            statBars.forEach(bar => bar.style.width = '0%');
-
-
-            // Show the HUD and overlay
+            // --- Show HUD with animations ---
             hudOverlay.classList.remove('hidden');
             statsHud.classList.remove('hidden');
-            hudOverlay.setAttribute('aria-hidden', 'false');
+            // Force reflow for transition to apply
+            void statsHud.offsetWidth; 
+            hudOverlay.classList.add('visible');
+            statsHud.classList.add('visible');
             statsHud.setAttribute('aria-hidden', 'false');
-            statsHud.scrollTop = 0; // Scroll to top when opening
+            hudOverlay.setAttribute('aria-hidden', 'false');
 
-            // Trigger layout and add 'visible' class for transitions/animations
-            requestAnimationFrame(() => {
-                 hudOverlay.classList.add('visible');
-                 statsHud.classList.add('visible');
-                 // Trigger stat bar animation after modal is visible
-                 setTimeout(() => {
-                     const statBars = statsHud.querySelectorAll('.stat-bar');
-                     statBars.forEach(bar => {
-                         const row = bar.closest('.stat-row');
-                         const valueSpan = row?.querySelector('.stat-value');
-                         if(valueSpan) {
-                             const statValue = parseInt(valueSpan.textContent || '0', 10);
-                             const percentage = Math.min(100, (statValue / MAX_STAT_VALUE) * 100);
-                             bar.style.width = `${percentage}%`;
-                         }
-                     });
-                 }, 150);
-            });
+            // Add event listener to close button
+            hudCloseButton.addEventListener('click', hideStatsHud, { once: true }); // Use { once: true } to prevent multiple listeners
+            hudOverlay.addEventListener('click', hideStatsHud, { once: true });
 
-            hudCloseButton.focus();
+            // Close with Escape key
+            document.addEventListener('keydown', handleEscapeKey, { once: true });
         }
 
-        /** Hides the Stats HUD Modal. */
+        /** Hides the Stats HUD Modal and overlay. */
         function hideStatsHud() {
             hudOverlay.classList.remove('visible');
             statsHud.classList.remove('visible');
-            hudOverlay.setAttribute('aria-hidden', 'true');
             statsHud.setAttribute('aria-hidden', 'true');
+            hudOverlay.setAttribute('aria-hidden', 'true');
 
+            // Use a timeout to remove 'hidden' class after transition
             setTimeout(() => {
                 hudOverlay.classList.add('hidden');
                 statsHud.classList.add('hidden');
-                const statBars = statsHud.querySelectorAll('.stat-bar');
-                statBars.forEach(bar => bar.style.width = '0%');
-                // Reset styles for elements for next animation replay
-                 const animatedElements = statsHud.querySelectorAll('.hud-section');
-                 animatedElements.forEach(el => { el.style.opacity = ''; el.style.transform = ''; });
+            }, 400); // Should match the transition duration
 
-            }, 350);
+            // Remove event listeners
+            hudCloseButton.removeEventListener('click', hideStatsHud);
+            hudOverlay.removeEventListener('click', hideStatsHud);
+            document.removeEventListener('keydown', handleEscapeKey);
         }
 
-        // --- Event Listeners ---
-        window.addEventListener('scroll', () => {
-            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-            if (clientHeight + scrollTop >= scrollHeight - 350 && !isLoading) {
+        /** Handles closing the HUD with the Escape key. */
+        function handleEscapeKey(event) {
+            if (event.key === 'Escape' || event.keyCode === 27) {
+                hideStatsHud();
+            }
+        }
+
+        // --- Initial Load & Scroll Listener ---
+
+        /** Checks if the user has scrolled near the bottom to load more Pokemon. */
+        function handleScroll() {
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500 && !isLoading) {
                 fetchPokemonBatch(currentOffset, BATCH_SIZE);
             }
+        }
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchPokemonBatch(currentOffset, BATCH_SIZE);
+            window.addEventListener('scroll', handleScroll);
         });
-        hudCloseButton.addEventListener('click', hideStatsHud);
-        hudOverlay.addEventListener('click', hideStatsHud);
-        statsHud.addEventListener('click', (event) => { event.stopPropagation(); });
-        window.addEventListener('keydown', (event) => { if (event.key === 'Escape' && statsHud.classList.contains('visible')) { hideStatsHud(); } });
-
-        // --- Initial Load ---
-        document.addEventListener('DOMContentLoaded', () => { fetchPokemonBatch(currentOffset, BATCH_SIZE); });
-
     </script>
-
 </body>
 </html>
