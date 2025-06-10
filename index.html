@@ -165,8 +165,6 @@
          .hud-extra-info span { color: var(--text-main); font-weight: 500; }
 
         .hud-moves-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
             gap: 0.5rem;
             max-height: 300px;
             overflow-y: auto;
@@ -180,11 +178,39 @@
             text-transform: capitalize;
             border: 1px solid rgba(56, 189, 248, 0.1);
             transition: all 0.2s var(--transition-smooth);
+            display: flex;
+            flex-direction: column;
         }
         .move-item:hover {
             background-color: rgba(56, 189, 248, 0.2);
             border-color: rgba(56, 189, 248, 0.3);
             transform: translateY(-1px);
+        }
+        .move-name { /* New class for the move name */
+        font-weight: 600;
+        margin-bottom: 0.2rem;
+        }
+        .move-meta { /* New class for type, PP, BP */
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.4rem;
+        }
+        .move-description { /* New class for description */
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        line-height: 1.4;
+        text-transform: none; /* Keep description from being capitalized */
+        }
+        .move-type-badge {
+        display: inline-block;
+        padding: 0.1rem 0.4rem;
+        border-radius: 9999px;
+        font-size: 0.7rem;
+        font-weight: 500;
+        text-transform: capitalize;
+        margin-left: 0.5rem; /* Space from move name */
+        color: white;
+        vertical-align: middle;
         }
         .move-level {
             font-size: 0.7rem;
@@ -310,43 +336,72 @@
         let cellAnimationCounter = 0;
 
         // --- Functions ---
-
+        
         /** Fetches detailed data (Pokemon + Species + Moves) for a single Pokemon. Caches results. */
-        async function fetchPokemonDetails(url) {
-            const cacheKey = url;
-            if (pokemonDataCache[cacheKey]) { return pokemonDataCache[cacheKey]; }
+        /** Fetches detailed data (Pokemon + Species + Moves) for a single Pokemon. Caches results. */
+async function fetchPokemonDetails(url) {
+    const cacheKey = url;
+    if (pokemonDataCache[cacheKey]) { return pokemonDataCache[cacheKey]; }
+
+    try {
+        // Fetch main Pokemon data
+        const response = await fetch(url);
+        if (!response.ok) { console.error(`Failed fetch ${url}: ${response.status}`); return null; }
+        const data = await response.json();
+
+        // Fetch species data
+        let speciesData = null;
+        if (data.species && data.species.url) {
+            try {
+                const speciesResponse = await fetch(data.species.url);
+                if (speciesResponse.ok) {
+                    speciesData = await speciesResponse.json();
+                } else {
+                     console.error(`Failed fetch species ${data.species.url}: ${speciesResponse.status}`);
+                }
+            } catch (speciesError) {
+                 console.error(`Error fetching species ${data.species.url}:`, speciesError);
+            }
+        }
+
+        // --- START MODIFICATION ---
+        // First, create promises to fetch details for *all* moves
+        const detailedMovesPromises = data.moves.map(async (moveEntry) => {
+            const moveUrl = moveEntry.move.url;
+            const moveCacheKey = `move-${moveUrl}`;
+            if (pokemonDataCache[moveCacheKey]) {
+                return { ...moveEntry, details: pokemonDataCache[moveCacheKey] };
+            }
 
             try {
-                // Fetch main Pokemon data
-                const response = await fetch(url);
-                if (!response.ok) { console.error(`Failed fetch ${url}: ${response.status}`); return null; }
-                const data = await response.json();
-
-                // Fetch species data
-                let speciesData = null;
-                if (data.species && data.species.url) {
-                    try {
-                        const speciesResponse = await fetch(data.species.url);
-                        if (speciesResponse.ok) {
-                            speciesData = await speciesResponse.json();
-                        } else {
-                             console.error(`Failed fetch species ${data.species.url}: ${speciesResponse.status}`);
-                        }
-                    } catch (speciesError) {
-                         console.error(`Error fetching species ${data.species.url}:`, speciesError);
-                    }
+                const moveResponse = await fetch(moveUrl);
+                if (!moveResponse.ok) {
+                    console.warn(`Failed to fetch move details for ${moveEntry.move.name}: ${moveResponse.status}`);
+                    return { ...moveEntry, details: null };
                 }
+                const moveDetails = await moveResponse.json();
+                pokemonDataCache[moveCacheKey] = moveDetails; // Cache move details
+                return { ...moveEntry, details: moveDetails };
+            } catch (moveError) {
+                console.error(`Error fetching move details for ${moveEntry.move.name}:`, moveError);
+                return { ...moveEntry, details: null };
+            }
+        });
 
-                // Process moves to get the latest movepool
-                const latestMoves = getLatestMovepool(data.moves);
+        // Wait for all move details to be fetched before processing the latest movepool
+        const movesWithDetails = await Promise.all(detailedMovesPromises);
 
-                // Combine data and cache it
-                const combinedData = { ...data, speciesData, latestMoves };
-                pokemonDataCache[cacheKey] = combinedData;
-                return combinedData;
+        // Now, pass the moves *with* their details to getLatestMovepool
+        const latestMoves = getLatestMovepool(movesWithDetails);
+        // --- END MODIFICATION ---
 
-            } catch (error) { console.error(`Error fetching ${url}:`, error); return null; }
-        }
+        // Combine data and cache it
+        const combinedData = { ...data, speciesData, latestMoves };
+        pokemonDataCache[cacheKey] = combinedData;
+        return combinedData;
+
+    } catch (error) { console.error(`Error fetching ${url}:`, error); return null; }
+}
 
         /** Processes move data to get the latest movepool for a Pokemon */
         function getLatestMovepool(moves) {
@@ -362,10 +417,11 @@
                     }
                     
                     movesByVersion[versionName].push({
-                        name: moveEntry.move.name,
-                        learnMethod: versionDetail.move_learn_method.name,
-                        levelLearned: versionDetail.level_learned_at
-                    });
+                name: moveEntry.move.name,
+                learnMethod: versionDetail.move_learn_method.name,
+                levelLearned: versionDetail.level_learned_at,
+                details: moveEntry.details // Add move details here
+            });
                 });
             });
 
@@ -539,20 +595,43 @@
             hudPokemonCaptureRate.textContent = data.speciesData?.capture_rate || '--';
 
             // Moves
-            hudPokemonMoves.innerHTML = '';
-            if (data.latestMoves && data.latestMoves.length > 0) {
-                data.latestMoves.slice(0, 20).forEach(move => { // Limit to 20 moves for brevity
-                    const moveItem = document.createElement('div');
-                    moveItem.className = 'move-item';
-                    let moveText = move.name.replace('-', ' ');
-                    if (move.learnMethod === 'level-up' && move.levelLearned > 0) {
-                        moveText += `<span class="move-level"> (Lvl ${move.levelLearned})</span>`;
-                    } else if (move.learnMethod === 'machine') {
-                        moveText += `<span class="move-level"> (TM/HM)</span>`;
-                    } else if (move.learnMethod === 'egg') {
-                        moveText += `<span class="move-level"> (Egg)</span>`;
-                    }
-                    moveItem.innerHTML = moveText;
+hudPokemonMoves.innerHTML = '';
+    if (data.latestMoves && data.latestMoves.length > 0) {
+        data.latestMoves.slice(0, 20).forEach(move => { // Limit to 20 moves for brevity
+            const moveItem = document.createElement('div');
+            moveItem.className = 'move-item';
+
+            // --- START MODIFICATION ---
+            const moveName = move.name.replace('-', ' ');
+            const moveType = move.details?.type?.name || 'unknown';
+            const movePP = move.details?.pp || '--';
+            const moveBP = move.details?.power || '--';
+            const moveDescriptionEntry = move.details?.effect_entries?.find(entry => entry.language.name === 'en' && entry.effect);
+            const moveDescription = moveDescriptionEntry ? moveDescriptionEntry.effect.replace(/\$affect_rate/g, 'affect rate') : 'No description available.';
+
+            let learnMethodText = '';
+            if (move.learnMethod === 'level-up' && move.levelLearned > 0) {
+                learnMethodText = `(Lvl ${move.levelLearned})`;
+            } else if (move.learnMethod === 'machine') {
+                learnMethodText = `(TM/HM)`;
+            } else if (move.learnMethod === 'egg') {
+                learnMethodText = `(Egg)`;
+            } else if (move.learnMethod === 'tutor') {
+                learnMethodText = `(Tutor)`;
+            }
+
+            moveItem.innerHTML = `
+                <div class="flex items-center justify-between mb-1">
+                    <div class="move-name">${moveName} ${learnMethodText ? `<span class="move-level">${learnMethodText}</span>` : ''}</div>
+                    <span class="move-type-badge type-${moveType}">${moveType}</span>
+                </div>
+                <div class="move-meta">
+                    PP: ${movePP} | BP: ${moveBP}
+                </div>
+                <div class="move-description">
+                    ${moveDescription}
+                </div>
+            `;
                     hudPokemonMoves.appendChild(moveItem);
                 });
             } else {
