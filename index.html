@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,9 +29,163 @@
             overflow-x: hidden;
         }
 
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 7rem;
+            max-width: 80rem;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+            position: relative;
+        }
+
         .main-title {
             color: #f8fafc;
             text-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+            margin: 0;
+        }
+
+        .search-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .search-input {
+            background-color: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            color: var(--text-main);
+            font-size: 0.9rem;
+            width: 280px;
+            transition: all 0.3s var(--transition-smooth);
+            box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1), 0 8px 32px 0 rgba(0, 0, 0, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            width: 1.1rem;
+            height: 1.1rem;
+            pointer-events: none;
+        }
+
+        .clear-search-btn {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.2rem;
+            border-radius: 0.25rem;
+            opacity: 0;
+            transition: all 0.2s var(--transition-smooth);
+            width: 1.1rem;
+            height: 1.1rem;
+        }
+
+        .clear-search-btn.visible {
+            opacity: 1;
+        }
+
+        .clear-search-btn:hover {
+            color: var(--text-main);
+            background-color: rgba(56, 189, 248, 0.1);
+        }
+
+        .search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 0.75rem;
+            margin-top: 0.5rem;
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.15);
+            z-index: 30;
+            max-height: 300px;
+            overflow-y: auto;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.2s var(--transition-smooth);
+            pointer-events: none;
+        }
+
+        .search-suggestions.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .suggestion-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s var(--transition-smooth);
+            border-bottom: 1px solid rgba(56, 189, 248, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .suggestion-item:hover {
+            background-color: rgba(56, 189, 248, 0.1);
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-sprite {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            image-rendering: pixelated;
+        }
+
+        .suggestion-text {
+            flex: 1;
+        }
+
+        .suggestion-name {
+            font-weight: 500;
+            color: var(--text-main);
+            text-transform: capitalize;
+            font-size: 0.9rem;
+        }
+
+        .suggestion-id {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .no-results {
+            padding: 1rem;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
         }
 
         .pokemon-grid {
@@ -57,56 +212,111 @@
             flex-direction: column;
             justify-content: space-between;
         }
+
         .pokemon-cell:hover {
             transform: translateY(-5px) scale(1.02);
             box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.15);
             border-color: var(--card-hover-border);
         }
+
         .pokemon-cell:hover .cell-image {
             transform: scale(1.1);
         }
 
-        .cell-image-container {
-             flex-grow: 1; display: flex; justify-content: center; align-items: center;
-             margin-bottom: 0.75rem; min-height: 100px;
+        .pokemon-cell.hidden {
+            display: none;
         }
+
+        .cell-image-container {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            min-height: 100px;
+        }
+
         .cell-image {
-            width: 85px; height: 85px; object-fit: contain;
-            image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges;
+            width: 85px;
+            height: 85px;
+            object-fit: contain;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
             loading: lazy;
             transition: transform 0.3s var(--transition-smooth);
         }
 
-        .cell-name { font-size: 1rem; font-weight: 500; color: var(--text-main); text-transform: capitalize; margin-top: auto; }
-        .cell-id { font-size: 0.8rem; color: var(--text-secondary); }
+        .cell-name {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-main);
+            text-transform: capitalize;
+            margin-top: auto;
+        }
 
-        #loader { text-align: center; padding: 2.5rem; font-size: 1.1rem; font-weight: 500; color: var(--text-secondary); display: none; }
-        #loader.visible { display: block; }
+        .cell-id {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        #loader {
+            text-align: center;
+            padding: 2.5rem;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            display: none;
+        }
+
+        #loader.visible {
+            display: block;
+        }
 
         @keyframes cellEnter {
-            from { opacity: 0; transform: translateY(20px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
+
         .cell-enter-animation {
             animation: cellEnter 0.6s var(--transition-smooth) forwards;
             opacity: 0;
         }
 
         .hud-overlay {
-            position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(6px); z-index: 40; opacity: 0;
+            position: fixed;
+            inset: 0;
+            background-color: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(6px);
+            z-index: 40;
+            opacity: 0;
             transition: opacity 0.35s var(--transition-smooth);
         }
-        .hud-overlay.visible { opacity: 1; }
+
+        .hud-overlay.visible {
+            opacity: 1;
+        }
 
         .stats-hud {
-            position: fixed; top: 50%; left: 50%;
+            position: fixed;
+            top: 50%;
+            left: 50%;
             background-color: rgba(30, 41, 59, 0.85);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(56, 189, 248, 0.3);
-            border-radius: 1rem; padding: 1.75rem;
+            border-radius: 1rem;
+            padding: 1.75rem;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            z-index: 50; width: 95%; max-width: 600px;
+            z-index: 50;
+            width: 95%;
+            max-width: 600px;
             max-height: 90vh;
             overflow-y: auto;
             opacity: 0;
@@ -114,61 +324,155 @@
             transform-origin: center center;
             transition: opacity 0.35s var(--transition-smooth), transform 0.35s var(--transition-smooth);
         }
-         .stats-hud.visible {
-             opacity: 1;
-             transform: translate(-50%, -50%) scale(1);
-         }
+
+        .stats-hud.visible {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
 
         .hud-section {
-             opacity: 0; transform: translateY(10px);
+            opacity: 0;
+            transform: translateY(10px);
         }
-        .stats-hud.visible .hud-section { animation: hudElementFadeInSlide 0.5s var(--transition-smooth) forwards; }
-        .stats-hud.visible .hud-section:nth-child(1) { animation-delay: 0.1s; }
-        .stats-hud.visible .hud-section:nth-child(2) { animation-delay: 0.15s; }
-        .stats-hud.visible .hud-section:nth-child(3) { animation-delay: 0.2s; }
-        .stats-hud.visible .hud-section:nth-child(4) { animation-delay: 0.25s; }
-        .stats-hud.visible .hud-section:nth-child(5) { animation-delay: 0.3s; }
-        .stats-hud.visible .hud-section:nth-child(6) { animation-delay: 0.35s; }
-        .stats-hud.visible .hud-section:nth-child(7) { animation-delay: 0.4s; }
-        .stats-hud.visible .hud-section:nth-child(8) { animation-delay: 0.45s; }
-        .stats-hud.visible .hud-section:nth-child(9) { animation-delay: 0.5s; }
 
-        .hud-image { width: 130px; height: 130px; object-fit: contain; image-rendering: pixelated; margin: 0 auto 0.75rem auto; display: block; }
-        .hud-name { font-size: 2rem; font-weight: 700; text-align: center; text-transform: capitalize; color: #f8fafc; }
-        .hud-id { font-size: 1rem; text-align: center; color: var(--text-secondary); margin-bottom: 0.25rem; }
-        .hud-genus { font-size: 0.9rem; font-style: italic; text-align: center; color: var(--text-secondary); margin-bottom: 1rem; }
-        .hud-types { text-align: center; margin-bottom: 1.25rem; }
-
-        .hud-stats-container, .hud-abilities-container, .hud-moves-container {
-            background-color: rgba(15, 23, 42, 0.6); border-radius: 0.75rem;
-            padding: 1rem; margin-bottom: 1rem; border: 1px solid rgba(56, 189, 248, 0.15);
+        .stats-hud.visible .hud-section {
+            animation: hudElementFadeInSlide 0.5s var(--transition-smooth) forwards;
         }
+
+        .stats-hud.visible .hud-section:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .stats-hud.visible .hud-section:nth-child(2) {
+            animation-delay: 0.15s;
+        }
+
+        .stats-hud.visible .hud-section:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .stats-hud.visible .hud-section:nth-child(4) {
+            animation-delay: 0.25s;
+        }
+
+        .stats-hud.visible .hud-section:nth-child(5) {
+            animation-delay: 0.3s;
+        }
+
+        .stats-hud.visible .hud-section:nth-child(6) {
+            animation-delay: 0.35s;
+        }
+
+        .stats-hud.visible .hud-section:nth-child(7) {
+            animation-delay: 0.4s;
+        }
+
+        .stats-hud.visible .hud-section:nth-child(8) {
+            animation-delay: 0.45s;
+        }
+
+        .stats-hud.visible .hud-section:nth-child(9) {
+            animation-delay: 0.5s;
+        }
+
+        .hud-image {
+            width: 130px;
+            height: 130px;
+            object-fit: contain;
+            image-rendering: pixelated;
+            margin: 0 auto 0.75rem auto;
+            display: block;
+        }
+
+        .hud-name {
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            text-transform: capitalize;
+            color: #f8fafc;
+        }
+
+        .hud-id {
+            font-size: 1rem;
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .hud-genus {
+            font-size: 0.9rem;
+            font-style: italic;
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .hud-types {
+            text-align: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .hud-stats-container,
+        .hud-abilities-container,
+        .hud-moves-container {
+            background-color: rgba(15, 23, 42, 0.6);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(56, 189, 248, 0.15);
+        }
+
         .hud-section-title {
-            font-size: 1.1rem; font-weight: 600; color: var(--text-main); text-align: center;
-            margin-bottom: 1rem; border-bottom: 1px solid rgba(56, 189, 248, 0.2); padding-bottom: 0.6rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-main);
+            text-align: center;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+            padding-bottom: 0.6rem;
         }
-         .hud-abilities-list {
-             font-size: 0.9rem; color: var(--text-main); text-align: center;
-             line-height: 1.6; text-transform: capitalize;
-         }
-         .hud-abilities-list span { display: block; }
-         .hud-abilities-list .hidden-ability { color: var(--text-secondary); font-style: italic; }
+
+        .hud-abilities-list {
+            font-size: 0.9rem;
+            color: var(--text-main);
+            text-align: center;
+            line-height: 1.6;
+            text-transform: capitalize;
+        }
+
+        .hud-abilities-list span {
+            display: block;
+        }
+
+        .hud-abilities-list .hidden-ability {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
 
         .hud-extra-info {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 0.5rem 1rem;
-            font-size: 0.9rem; color: var(--text-secondary); text-align: center;
-            background-color: rgba(15, 23, 42, 0.6); border-radius: 0.75rem;
-            padding: 0.75rem; border: 1px solid rgba(56, 189, 248, 0.15);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-align: center;
+            background-color: rgba(15, 23, 42, 0.6);
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+            border: 1px solid rgba(56, 189, 248, 0.15);
         }
-         .hud-extra-info span { color: var(--text-main); font-weight: 500; }
+
+        .hud-extra-info span {
+            color: var(--text-main);
+            font-weight: 500;
+        }
 
         .hud-moves-list {
             gap: 0.5rem;
             max-height: 300px;
             overflow-y: auto;
         }
+
         .move-item {
             background-color: rgba(51, 65, 85, 0.4);
             border-radius: 0.5rem;
@@ -181,93 +485,297 @@
             display: flex;
             flex-direction: column;
         }
+
         .move-item:hover {
             background-color: rgba(56, 189, 248, 0.2);
             border-color: rgba(56, 189, 248, 0.3);
             transform: translateY(-1px);
         }
-        .move-name { /* New class for the move name */
-        font-weight: 600;
-        margin-bottom: 0.2rem;
+
+        .move-name {
+            /* New class for the move name */
+            font-weight: 600;
+            margin-bottom: 0.2rem;
         }
-        .move-meta { /* New class for type, PP, BP */
-        font-size: 0.75rem;
-        color: var(--text-secondary);
-        margin-bottom: 0.4rem;
+
+        .move-meta {
+            /* New class for type, PP, BP */
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
         }
-        .move-description { /* New class for description */
-        font-size: 0.8rem;
-        color: var(--text-secondary);
-        line-height: 1.4;
-        text-transform: none; /* Keep description from being capitalized */
+
+        .move-description {
+            /* New class for description */
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            text-transform: none;
+            /* Keep description from being capitalized */
         }
+
         .move-type-badge {
-        display: inline-block;
-        padding: 0.1rem 0.4rem;
-        border-radius: 9999px;
-        font-size: 0.7rem;
-        font-weight: 500;
-        text-transform: capitalize;
-        margin-left: 0.5rem; /* Space from move name */
-        color: white;
-        vertical-align: middle;
+            display: inline-block;
+            padding: 0.1rem 0.4rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: capitalize;
+            margin-left: 0.5rem;
+            /* Space from move name */
+            color: white;
+            vertical-align: middle;
         }
+
         .move-level {
             font-size: 0.7rem;
             color: var(--text-secondary);
             font-weight: 500;
         }
 
-        @keyframes hudElementFadeInSlide { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes hudElementFadeInScale { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
-        .stats-hud.visible .hud-image { animation: hudElementFadeInScale 0.5s var(--transition-smooth) forwards; animation-delay: inherit; }
+        @keyframes hudElementFadeInSlide {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes hudElementFadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .stats-hud.visible .hud-image {
+            animation: hudElementFadeInScale 0.5s var(--transition-smooth) forwards;
+            animation-delay: inherit;
+        }
 
         .hud-close-button {
-            position: absolute; top: 1rem; right: 1rem; background-color: rgba(51, 65, 85, 0.7);
-            border-radius: 9999px; padding: 0.4rem; line-height: 1; cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.3s var(--transition-smooth); z-index: 51;
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background-color: rgba(51, 65, 85, 0.7);
+            border-radius: 9999px;
+            padding: 0.4rem;
+            line-height: 1;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.3s var(--transition-smooth);
+            z-index: 51;
         }
-        .hud-close-button:hover { background-color: rgba(71, 85, 105, 0.8); transform: rotate(90deg) scale(1.1); }
-        .hud-close-button svg { width: 1.1rem; height: 1.1rem; color: var(--text-main); }
+
+        .hud-close-button:hover {
+            background-color: rgba(71, 85, 105, 0.8);
+            transform: rotate(90deg) scale(1.1);
+        }
+
+        .hud-close-button svg {
+            width: 1.1rem;
+            height: 1.1rem;
+            color: var(--text-main);
+        }
 
         .type-badge {
-            display: inline-block; padding: 0.3rem 0.8rem; border-radius: 9999px;
-            font-size: 0.85rem; font-weight: 600; text-transform: capitalize;
-            margin: 0 0.3rem; color: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: capitalize;
+            margin: 0 0.3rem;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .type-normal { background-color: #A8A77A; } .type-fire { background-color: #EE8130; } .type-water { background-color: #6390F0; }
-        .type-electric { background-color: #F7D02C; } .type-grass { background-color: #7AC74C; } .type-ice { background-color: #96D9D6; }
-        .type-fighting { background-color: #C22E28; } .type-poison { background-color: #A33EA1; } .type-ground { background-color: #E2BF65; }
-        .type-flying { background-color: #A98FF3; } .type-psychic { background-color: #F95587; } .type-bug { background-color: #A6B91A; }
-        .type-rock { background-color: #B6A136; } .type-ghost { background-color: #735797; } .type-dragon { background-color: #6F35FC; }
-        .type-dark { background-color: #705746; } .type-steel { background-color: #B7B7CE; } .type-fairy { background-color: #D685AD; }
 
-        .stat-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.4rem; }
-        .stat-name { width: 35%; font-weight: 500; color: var(--text-secondary); text-transform: capitalize; }
-        .stat-bar-container { width: 65%; display: flex; align-items: center; }
-        .stat-bar-bg { background-color: rgba(15, 23, 42, 0.5); border-radius: 6px; overflow: hidden; height: 0.7rem; flex-grow: 1; margin-right: 0.6rem; }
-        .stat-bar { height: 100%; border-radius: 6px; transition: width 0.7s var(--transition-smooth) 0.2s; width: 0%; background: linear-gradient(to right, var(--accent-color), var(--accent-color-darker)); }
-        .stat-value { font-weight: 600; color: var(--text-main); width: 35px; text-align: right; font-size: 0.85rem; }
+        .type-normal {
+            background-color: #A8A77A;
+        }
 
+        .type-fire {
+            background-color: #EE8130;
+        }
+
+        .type-water {
+            background-color: #6390F0;
+        }
+
+        .type-electric {
+            background-color: #F7D02C;
+        }
+
+        .type-grass {
+            background-color: #7AC74C;
+        }
+
+        .type-ice {
+            background-color: #96D9D6;
+        }
+
+        .type-fighting {
+            background-color: #C22E28;
+        }
+
+        .type-poison {
+            background-color: #A33EA1;
+        }
+
+        .type-ground {
+            background-color: #E2BF65;
+        }
+
+        .type-flying {
+            background-color: #A98FF3;
+        }
+
+        .type-psychic {
+            background-color: #F95587;
+        }
+
+        .type-bug {
+            background-color: #A6B91A;
+        }
+
+        .type-rock {
+            background-color: #B6A136;
+        }
+
+        .type-ghost {
+            background-color: #735797;
+        }
+
+        .type-dragon {
+            background-color: #6F35FC;
+        }
+
+        .type-dark {
+            background-color: #705746;
+        }
+
+        .type-steel {
+            background-color: #B7B7CE;
+        }
+
+        .type-fairy {
+            background-color: #D685AD;
+        }
+
+        .stat-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .stat-name {
+            width: 35%;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: capitalize;
+        }
+
+        .stat-bar-container {
+            width: 65%;
+            display: flex;
+            align-items: center;
+        }
+
+        .stat-bar-bg {
+            background-color: rgba(15, 23, 42, 0.5);
+            border-radius: 6px;
+            overflow: hidden;
+            height: 0.7rem;
+            flex-grow: 1;
+            margin-right: 0.6rem;
+        }
+
+        .stat-bar {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.7s var(--transition-smooth) 0.2s;
+            width: 0%;
+            background: linear-gradient(to right, var(--accent-color), var(--accent-color-darker));
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: var(--text-main);
+            width: 35px;
+            text-align: right;
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                gap: 1.5rem;
+                align-items: center;
+            }
+
+            .search-input {
+                width: 100%;
+                max-width: 320px;
+            }
+        }
     </style>
 </head>
+
 <body>
 
-    <h1 class="main-title text-4xl font-bold text-center my-8 tracking-tight">Pokémon</h1>
+    <div class="header-container">
+        <h1 class="main-title text-4xl font-bold tracking-tight">Pokémon</h1>
+
+        <div class="search-container">
+            <div style="position: relative;">
+                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                </svg>
+                <input type="text" id="search-input" class="search-input" placeholder="Search Pokémon by name or ID..."
+                    autocomplete="off" />
+                <button id="clear-search" class="clear-search-btn" title="Clear search">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+                <div id="search-suggestions" class="search-suggestions"></div>
+            </div>
+        </div>
+    </div>
 
     <div id="pokemon-grid" class="pokemon-grid max-w-7xl mx-auto"> </div>
 
-    <div id="loader"> <p>Loading more Pokémon...</p> </div>
+    <div id="loader">
+        <p>Loading more Pokémon...</p>
+    </div>
 
     <div id="hud-overlay" class="hud-overlay hidden" aria-hidden="true"></div>
-    <div id="stats-hud" class="stats-hud hidden" role="dialog" aria-modal="true" aria-labelledby="hud-pokemon-name" aria-hidden="true">
+    <div id="stats-hud" class="stats-hud hidden" role="dialog" aria-modal="true" aria-labelledby="hud-pokemon-name"
+        aria-hidden="true">
         <button id="hud-close-button" class="hud-close-button" aria-label="Close">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /> </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /> </svg>
         </button>
 
         <div class="hud-section">
-            <img id="hud-pokemon-image" src="https://placehold.co/130x130/334155/94a3b8?text=?" alt="Pokemon Image" class="hud-image" onerror="this.onerror=null; this.src='https://placehold.co/130x130/334155/94a3b8?text=Err';">
+            <img id="hud-pokemon-image" src="https://placehold.co/130x130/334155/94a3b8?text=?" alt="Pokemon Image"
+                class="hud-image"
+                onerror="this.onerror=null; this.src='https://placehold.co/130x130/334155/94a3b8?text=Err';">
         </div>
         <div class="hud-section">
             <h2 id="hud-pokemon-name" class="hud-name">Pokemon Name</h2>
@@ -276,22 +784,26 @@
             <p id="hud-pokemon-id" class="hud-id">#000</p>
         </div>
         <div class="hud-section">
-            <p id="hud-pokemon-genus" class="hud-genus">Genus</p> </div>
+            <p id="hud-pokemon-genus" class="hud-genus">Genus</p>
+        </div>
         <div class="hud-section">
             <div id="hud-pokemon-types" class="hud-types"> </div>
         </div>
         <div class="hud-section">
             <div class="hud-stats-container">
-                <h3 class="hud-section-title">Base Stats</h3> <div id="hud-pokemon-stats"> </div>
+                <h3 class="hud-section-title">Base Stats</h3>
+                <div id="hud-pokemon-stats"> </div>
             </div>
         </div>
         <div class="hud-section">
-            <div class="hud-abilities-container"> <h3 class="hud-section-title">Abilities</h3>
+            <div class="hud-abilities-container">
+                <h3 class="hud-section-title">Abilities</h3>
                 <div id="hud-pokemon-abilities" class="hud-abilities-list"> </div>
             </div>
         </div>
         <div class="hud-section">
-            <div class="hud-extra-info"> <div id="hud-pokemon-height">Height: <span>--</span> m</div>
+            <div class="hud-extra-info">
+                <div id="hud-pokemon-height">Height: <span>--</span> m</div>
                 <div id="hud-pokemon-weight">Weight: <span>--</span> kg</div>
                 <div id="hud-pokemon-base-exp">Base Exp: <span>--</span></div>
                 <div id="hud-pokemon-capture-rate">Capture Rate: <span>--</span></div>
@@ -312,6 +824,12 @@
         const hudOverlay = document.getElementById('hud-overlay');
         const statsHud = document.getElementById('stats-hud');
         const hudCloseButton = document.getElementById('hud-close-button');
+
+        // Search Elements
+        const searchInput = document.getElementById('search-input');
+        const clearSearchBtn = document.getElementById('clear-search');
+        const searchSuggestions = document.getElementById('search-suggestions');
+
         // HUD Content Elements
         const hudPokemonImage = document.getElementById('hud-pokemon-image');
         const hudPokemonName = document.getElementById('hud-pokemon-name');
@@ -334,74 +852,435 @@
         let totalPokemonCount = 0;
         let pokemonDataCache = {};
         let cellAnimationCounter = 0;
+        let allPokemonCells = [];
+        let searchTimeout;
+        let isSearchMode = false;
+        let allPokemonList = [];
+        let pokemonListLoaded = false;
 
-        // --- Functions ---
-        
-        /** Fetches detailed data (Pokemon + Species + Moves) for a single Pokemon. Caches results. */
-        /** Fetches detailed data (Pokemon + Species + Moves) for a single Pokemon. Caches results. */
-async function fetchPokemonDetails(url) {
-    const cacheKey = url;
-    if (pokemonDataCache[cacheKey]) { return pokemonDataCache[cacheKey]; }
+        // --- Search Functions ---
 
+        /** Initializes search functionality */
+        /** Initializes search functionality and loads complete Pokemon list */
+async function initializeSearch() {
+    searchInput.addEventListener('input', handleSearchInput);
+    clearSearchBtn.addEventListener('click', clearSearch);
+    searchInput.addEventListener('focus', handleSearchFocus);
+    searchInput.addEventListener('blur', handleSearchBlur);
+    
+    // Close suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-container')) {
+            hideSuggestions();
+        }
+    });
+
+    // Load complete Pokemon list for searching
+    await loadCompletePokemonList();
+}
+
+
+/** Loads the complete list of all Pokemon for search functionality */
+async function loadCompletePokemonList() {
+    if (pokemonListLoaded) return;
+    
     try {
-        // Fetch main Pokemon data
-        const response = await fetch(url);
-        if (!response.ok) { console.error(`Failed fetch ${url}: ${response.status}`); return null; }
+        console.log('Loading complete Pokemon list for search...');
+        const response = await fetch(`${POKEAPI_BASE_URL}pokemon?limit=2000`);
+        if (!response.ok) throw new Error(`Failed to load Pokemon list: ${response.status}`);
+        
         const data = await response.json();
+        allPokemonList = data.results.map((pokemon, index) => ({
+            name: pokemon.name,
+            id: index + 1,
+            url: pokemon.url
+        }));
+        
+        pokemonListLoaded = true;
+        console.log(`Loaded ${allPokemonList.length} Pokemon for search`);
+    } catch (error) {
+        console.error('Failed to load complete Pokemon list:', error);
+        // Fallback to current method if this fails
+        allPokemonList = [];
+    }
+}
 
-        // Fetch species data
-        let speciesData = null;
-        if (data.species && data.species.url) {
-            try {
-                const speciesResponse = await fetch(data.species.url);
-                if (speciesResponse.ok) {
-                    speciesData = await speciesResponse.json();
+        /** Handles search input with debouncing */
+        function handleSearchInput(e) {
+            const query = e.target.value.trim();
+
+            // Show/hide clear button
+            if (query.length > 0) {
+                clearSearchBtn.classList.add('visible');
+            } else {
+                clearSearchBtn.classList.remove('visible');
+            }
+
+            // Debounce search
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                if (query.length > 0) {
+                    performSearch(query);
                 } else {
-                     console.error(`Failed fetch species ${data.species.url}: ${speciesResponse.status}`);
+                    clearSearch();
                 }
-            } catch (speciesError) {
-                 console.error(`Error fetching species ${data.species.url}:`, speciesError);
+            }, 300);
+        }
+
+        /** Handles search input focus */
+        function handleSearchFocus() {
+            const query = searchInput.value.trim();
+            if (query.length >= 2) {
+                showSuggestions(query);
             }
         }
 
-        // --- START MODIFICATION ---
-        // First, create promises to fetch details for *all* moves
-        const detailedMovesPromises = data.moves.map(async (moveEntry) => {
-            const moveUrl = moveEntry.move.url;
-            const moveCacheKey = `move-${moveUrl}`;
-            if (pokemonDataCache[moveCacheKey]) {
-                return { ...moveEntry, details: pokemonDataCache[moveCacheKey] };
+        /** Handles search input blur with delay */
+        function handleSearchBlur() {
+            // Delay hiding suggestions to allow clicking on them
+            setTimeout(() => {
+                hideSuggestions();
+            }, 200);
+        }
+
+        /** Performs the actual search */
+        async function performSearch(query) {
+            isSearchMode = true;
+
+            if (query.length >= 2) {
+                await showSuggestions(query);
+            }
+
+            filterPokemonGrid(query);
+        }
+
+        /** Shows search suggestions dropdown */
+        async function showSuggestions(query) {
+            const suggestions = await searchPokemon(query);
+
+            if (suggestions.length > 0) {
+                renderSuggestions(suggestions);
+                searchSuggestions.classList.add('visible');
+            } else {
+                searchSuggestions.innerHTML = '<div class="no-results">No Pokémon found</div>';
+                searchSuggestions.classList.add('visible');
+            }
+        }
+
+        /** Hides search suggestions */
+        function hideSuggestions() {
+            searchSuggestions.classList.remove('visible');
+        }
+
+        /** Searches for Pokemon by name or ID */
+        /** Searches for Pokemon by name or ID across all Pokemon */
+async function searchPokemon(query) {
+    const results = [];
+    const lowerQuery = query.toLowerCase();
+    
+    // If complete list is loaded, search through it
+    if (pokemonListLoaded && allPokemonList.length > 0) {
+        for (const pokemon of allPokemonList) {
+            const nameMatch = pokemon.name.includes(lowerQuery);
+            const idMatch = pokemon.id.toString() === query || pokemon.id.toString().includes(query);
+            
+            if (nameMatch || idMatch) {
+                // Check if we already have sprite data from loaded cells
+                const existingCell = allPokemonCells.find(cell => cell.dataset.id === pokemon.id.toString());
+                const sprite = existingCell ? existingCell.querySelector('.cell-image').src : 
+                    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`;
+                
+                results.push({
+                    name: pokemon.name,
+                    id: pokemon.id.toString(),
+                    sprite: sprite,
+                    isLoaded: !!existingCell
+                });
+                
+                // Limit results to prevent too many
+                if (results.length >= 10) break;
+            }
+        }
+    } else {
+        // Fallback to original method if complete list isn't loaded
+        for (const cell of allPokemonCells) {
+            const pokemonName = cell.dataset.name;
+            const pokemonId = cell.dataset.id;
+            
+            if (pokemonName.includes(lowerQuery) || pokemonId === query) {
+                results.push({
+                    name: pokemonName,
+                    id: pokemonId,
+                    sprite: cell.querySelector('.cell-image').src,
+                    isLoaded: true
+                });
+            }
+        }
+        
+        // Try API search for additional results
+        if (results.length < 5 && (query.length >= 3 || /^\d+$/.test(query))) {
+            try {
+                const apiResults = await searchPokemonAPI(query);
+                results.push(...apiResults);
+            } catch (error) {
+                console.error('API search error:', error);
+            }
+        }
+    }
+    
+    // Remove duplicates and limit results
+    const uniqueResults = results.filter((result, index, self) => 
+        index === self.findIndex(r => r.id === result.id)
+    );
+    
+    return uniqueResults.slice(0, 8);
+}
+
+        /** Searches Pokemon via API for more comprehensive results */
+        async function searchPokemonAPI(query) {
+            const results = [];
+            const lowerQuery = query.toLowerCase();
+
+            // Try direct ID search
+            if (/^\d+$/.test(query)) {
+                try {
+                    const response = await fetch(`${POKEAPI_BASE_URL}pokemon/${query}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        results.push({
+                            name: data.name,
+                            id: data.id.toString(),
+                            sprite: data.sprites.front_default,
+                            isLoaded: false
+                        });
+                    }
+                } catch (error) {
+                    console.error('Direct ID search error:', error);
+                }
+            }
+
+            // Try direct name search
+            if (query.length >= 3) {
+                try {
+                    const response = await fetch(`${POKEAPI_BASE_URL}pokemon/${lowerQuery}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        const isDuplicate = results.some(r => r.id === data.id.toString());
+                        if (!isDuplicate) {
+                            results.push({
+                                name: data.name,
+                                id: data.id.toString(),
+                                sprite: data.sprites.front_default,
+                                isLoaded: false
+                            });
+                        }
+                    }
+                } catch (error) {
+                    // Expected for partial matches
+                }
+            }
+
+            return results;
+        }
+
+        /** Renders search suggestions in the dropdown */
+        function renderSuggestions(suggestions) {
+            const suggestionsHTML = suggestions.map(pokemon => `
+        <div class="suggestion-item" data-pokemon-id="${pokemon.id}" data-pokemon-name="${pokemon.name}">
+            <img src="${pokemon.sprite || 'https://placehold.co/32x32/64748b/e2e8f0?text=?'}" 
+                 alt="${pokemon.name}" 
+                 class="suggestion-sprite"
+                 onerror="this.onerror=null; this.src='https://placehold.co/32x32/64748b/e2e8f0?text=?';">
+            <div class="suggestion-text">
+                <div class="suggestion-name">${pokemon.name}</div>
+                <div class="suggestion-id">#${pokemon.id.padStart(3, '0')}</div>
+            </div>
+        </div>
+    `).join('');
+
+            searchSuggestions.innerHTML = suggestionsHTML;
+
+            // Add click listeners to suggestions
+            searchSuggestions.querySelectorAll('.suggestion-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const pokemonId = item.dataset.pokemonId;
+                    const pokemonName = item.dataset.pokemonName;
+                    selectSuggestion(pokemonId, pokemonName);
+                });
+            });
+        }
+
+        /** Handles suggestion selection */
+        async function selectSuggestion(pokemonId, pokemonName) {
+            searchInput.value = pokemonName;
+            hideSuggestions();
+
+            // Find if pokemon is already loaded
+            const existingCell = allPokemonCells.find(cell => cell.dataset.id === pokemonId);
+
+            if (existingCell) {
+                // Scroll to existing cell and highlight it
+                existingCell.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+                existingCell.style.transform = 'translateY(-5px) scale(1.05)';
+                existingCell.style.borderColor = 'var(--accent-color)';
+
+                setTimeout(() => {
+                    existingCell.style.transform = '';
+                    existingCell.style.borderColor = '';
+                }, 2000);
+
+                // Show details if available
+                const pokemonData = Object.values(pokemonDataCache).find(data => data.id.toString() === pokemonId);
+                if (pokemonData) {
+                    showStatsHud(pokemonData);
+                }
+            } else {
+                // Load and show the pokemon
+                try {
+                    const pokemonData = await fetchPokemonDetails(`${POKEAPI_BASE_URL}pokemon/${pokemonId}`);
+                    if (pokemonData) {
+                        showStatsHud(pokemonData);
+                    }
+                } catch (error) {
+                    console.error('Error loading selected Pokemon:', error);
+                }
+            }
+        }
+
+        /** Filters the Pokemon grid based on search query */
+        /** Filters the Pokemon grid based on search query */
+function filterPokemonGrid(query) {
+    if (!query) {
+        // Show all loaded Pokemon if no query
+        allPokemonCells.forEach(cell => {
+            cell.classList.remove('hidden');
+        });
+        return;
+    }
+    
+    const lowerQuery = query.toLowerCase();
+    
+    allPokemonCells.forEach(cell => {
+        const pokemonName = cell.dataset.name;
+        const pokemonId = cell.dataset.id;
+        
+        const nameMatch = pokemonName.includes(lowerQuery);
+        const idMatch = pokemonId === query || pokemonId.includes(query);
+        
+        if (nameMatch || idMatch) {
+            cell.classList.remove('hidden');
+        } else {
+            cell.classList.add('hidden');
+        }
+    });
+}
+        /** Clears the search and shows all Pokemon */
+        function clearSearch() {
+            searchInput.value = '';
+            clearSearchBtn.classList.remove('visible');
+            hideSuggestions();
+            isSearchMode = false;
+
+            // Show all Pokemon cells
+            allPokemonCells.forEach(cell => {
+                cell.classList.remove('hidden');
+            });
+        }
+
+        // --- Core Pokemon Functions ---
+
+        /** Fetches detailed data (Pokemon + Species + Moves) for a single Pokemon. Caches results. */
+        async function fetchPokemonDetails(url) {
+            const cacheKey = url;
+            if (pokemonDataCache[cacheKey]) {
+                return pokemonDataCache[cacheKey];
             }
 
             try {
-                const moveResponse = await fetch(moveUrl);
-                if (!moveResponse.ok) {
-                    console.warn(`Failed to fetch move details for ${moveEntry.move.name}: ${moveResponse.status}`);
-                    return { ...moveEntry, details: null };
+                // Fetch main Pokemon data
+                const response = await fetch(url);
+                if (!response.ok) {
+                    console.error(`Failed fetch ${url}: ${response.status}`);
+                    return null;
                 }
-                const moveDetails = await moveResponse.json();
-                pokemonDataCache[moveCacheKey] = moveDetails; // Cache move details
-                return { ...moveEntry, details: moveDetails };
-            } catch (moveError) {
-                console.error(`Error fetching move details for ${moveEntry.move.name}:`, moveError);
-                return { ...moveEntry, details: null };
+                const data = await response.json();
+
+                // Fetch species data
+                let speciesData = null;
+                if (data.species && data.species.url) {
+                    try {
+                        const speciesResponse = await fetch(data.species.url);
+                        if (speciesResponse.ok) {
+                            speciesData = await speciesResponse.json();
+                        } else {
+                            console.error(`Failed fetch species ${data.species.url}: ${speciesResponse.status}`);
+                        }
+                    } catch (speciesError) {
+                        console.error(`Error fetching species ${data.species.url}:`, speciesError);
+                    }
+                }
+
+                // First, create promises to fetch details for *all* moves
+                const detailedMovesPromises = data.moves.map(async (moveEntry) => {
+                    const moveUrl = moveEntry.move.url;
+                    const moveCacheKey = `move-${moveUrl}`;
+                    if (pokemonDataCache[moveCacheKey]) {
+                        return {
+                            ...moveEntry,
+                            details: pokemonDataCache[moveCacheKey]
+                        };
+                    }
+
+                    try {
+                        const moveResponse = await fetch(moveUrl);
+                        if (!moveResponse.ok) {
+                            console.warn(
+                                `Failed to fetch move details for ${moveEntry.move.name}: ${moveResponse.status}`
+                                );
+                            return {
+                                ...moveEntry,
+                                details: null
+                            };
+                        }
+                        const moveDetails = await moveResponse.json();
+                        pokemonDataCache[moveCacheKey] = moveDetails; // Cache move details
+                        return {
+                            ...moveEntry,
+                            details: moveDetails
+                        };
+                    } catch (moveError) {
+                        console.error(`Error fetching move details for ${moveEntry.move.name}:`,
+                            moveError);
+                        return {
+                            ...moveEntry,
+                            details: null
+                        };
+                    }
+                });
+
+                // Wait for all move details to be fetched before processing the latest movepool
+                const movesWithDetails = await Promise.all(detailedMovesPromises);
+
+                // Now, pass the moves *with* their details to getLatestMovepool
+                const latestMoves = getLatestMovepool(movesWithDetails);
+
+                // Combine data and cache it
+                const combinedData = {
+                    ...data,
+                    speciesData,
+                    latestMoves
+                };
+                pokemonDataCache[cacheKey] = combinedData;
+                return combinedData;
+
+            } catch (error) {
+                console.error(`Error fetching ${url}:`, error);
+                return null;
             }
-        });
-
-        // Wait for all move details to be fetched before processing the latest movepool
-        const movesWithDetails = await Promise.all(detailedMovesPromises);
-
-        // Now, pass the moves *with* their details to getLatestMovepool
-        const latestMoves = getLatestMovepool(movesWithDetails);
-        // --- END MODIFICATION ---
-
-        // Combine data and cache it
-        const combinedData = { ...data, speciesData, latestMoves };
-        pokemonDataCache[cacheKey] = combinedData;
-        return combinedData;
-
-    } catch (error) { console.error(`Error fetching ${url}:`, error); return null; }
-}
+        }
 
         /** Processes move data to get the latest movepool for a Pokemon */
         function getLatestMovepool(moves) {
@@ -415,13 +1294,13 @@ async function fetchPokemonDetails(url) {
                     if (!movesByVersion[versionName]) {
                         movesByVersion[versionName] = [];
                     }
-                    
+
                     movesByVersion[versionName].push({
-                name: moveEntry.move.name,
-                learnMethod: versionDetail.move_learn_method.name,
-                levelLearned: versionDetail.level_learned_at,
-                details: moveEntry.details // Add move details here
-            });
+                        name: moveEntry.move.name,
+                        learnMethod: versionDetail.move_learn_method.name,
+                        levelLearned: versionDetail.level_learned_at,
+                        details: moveEntry.details // Add move details here
+                    });
                 });
             });
 
@@ -454,12 +1333,12 @@ async function fetchPokemonDetails(url) {
                 // Sort by learn method first (level-up, then others)
                 if (a.learnMethod === 'level-up' && b.learnMethod !== 'level-up') return -1;
                 if (a.learnMethod !== 'level-up' && b.learnMethod === 'level-up') return 1;
-                
+
                 // Then sort by level if both are level-up
                 if (a.learnMethod === 'level-up' && b.learnMethod === 'level-up') {
                     return a.levelLearned - b.levelLearned;
                 }
-                
+
                 // Finally sort by name
                 return a.name.localeCompare(b.name);
             });
@@ -467,7 +1346,9 @@ async function fetchPokemonDetails(url) {
 
         /** Fetches a batch of Pokemon data (list + details). */
         async function fetchPokemonBatch(offset, limit) {
-            if (isLoading || (totalPokemonCount > 0 && offset >= totalPokemonCount)) { return; }
+            if (isLoading || (totalPokemonCount > 0 && offset >= totalPokemonCount)) {
+                return;
+            }
             isLoading = true;
             loader.classList.add('visible');
             cellAnimationCounter = 0;
@@ -477,19 +1358,32 @@ async function fetchPokemonDetails(url) {
                 if (!listResponse.ok) throw new Error(`List fetch failed: ${listResponse.status}`);
                 const listData = await listResponse.json();
 
-                if (totalPokemonCount === 0) { totalPokemonCount = listData.count; console.log(`Total Pokemon: ${totalPokemonCount}`); }
+                if (totalPokemonCount === 0) {
+                    totalPokemonCount = listData.count;
+                    console.log(`Total Pokemon: ${totalPokemonCount}`);
+                }
 
                 const detailPromises = listData.results.map(p => fetchPokemonDetails(p.url));
                 const detailedPokemonData = await Promise.all(detailPromises);
 
-                detailedPokemonData.forEach(data => { if (data) { displayPokemonInCell(data); } });
+                detailedPokemonData.forEach(data => {
+                    if (data) {
+                        displayPokemonInCell(data);
+                    }
+                });
                 currentOffset += limit;
 
-            } catch (error) { console.error("Batch fetch error:", error); loader.textContent = "Failed to load."; }
-            finally {
+            } catch (error) {
+                console.error("Batch fetch error:", error);
+                loader.textContent = "Failed to load.";
+            } finally {
                 isLoading = false;
-                if (currentOffset < totalPokemonCount) { loader.classList.remove('visible'); }
-                else { loader.textContent = "All Pokémon loaded!"; loader.classList.add('visible'); }
+                if (currentOffset < totalPokemonCount) {
+                    loader.classList.remove('visible');
+                } else {
+                    loader.textContent = "All Pokémon loaded!";
+                    loader.classList.add('visible');
+                }
             }
         }
 
@@ -497,27 +1391,32 @@ async function fetchPokemonDetails(url) {
         function displayPokemonInCell(data) {
             const cell = document.createElement('div');
             cell.className = 'pokemon-cell cell-enter-animation';
+            cell.dataset.name = data.name;
+            cell.dataset.id = data.id.toString();
 
             const delay = (cellAnimationCounter % BATCH_SIZE) * 50;
             cell.style.animationDelay = `${delay}ms`;
             cellAnimationCounter++;
 
-            const animatedSprite = data.sprites.versions?.['generation-v']?.['black-white']?.animated?.front_default;
+            const animatedSprite = data.sprites.versions ?.['generation-v'] ?.['black-white'] ?.animated ?.front_default;
             const defaultSprite = data.sprites.front_default;
             const spriteUrl = animatedSprite || defaultSprite || 'https://placehold.co/85x85/64748b/e2e8f0?text=?';
 
             cell.innerHTML = `
-                <div class="cell-image-container">
-                    <img src="${spriteUrl}" alt="${data.name}" class="cell-image" onerror="this.onerror=null; this.src='https://placehold.co/85x85/64748b/e2e8f0?text=Err';">
-                </div>
-                <div>
-                    <p class="cell-name">${data.name}</p>
-                    <p class="cell-id">#${String(data.id).padStart(3, '0')}</p>
-                </div>
-            `;
+        <div class="cell-image-container">
+            <img src="${spriteUrl}" alt="${data.name}" class="cell-image" onerror="this.onerror=null; this.src='https://placehold.co/85x85/64748b/e2e8f0?text=Err';">
+        </div>
+        <div>
+            <p class="cell-name">${data.name}</p>
+            <p class="cell-id">#${String(data.id).padStart(3, '0')}</p>
+        </div>
+    `;
 
-            cell.addEventListener('click', () => { showStatsHud(data); });
+            cell.addEventListener('click', () => {
+                showStatsHud(data);
+            });
             gridContainer.appendChild(cell);
+            allPokemonCells.push(cell);
         }
 
         /** Shows the Stats HUD Modal with specific Pokemon data and animations. */
@@ -527,23 +1426,24 @@ async function fetchPokemonDetails(url) {
             // --- Populate HUD content ---
             hudPokemonName.textContent = data.name;
             hudPokemonId.textContent = `#${String(data.id).padStart(3, '0')}`;
-            const animatedSprite = data.sprites.versions?.['generation-v']?.['black-white']?.animated?.front_default;
-            const officialArt = data.sprites.other?.['official-artwork']?.front_default;
+            const animatedSprite = data.sprites.versions ?.['generation-v'] ?.['black-white'] ?.animated ?.front_default;
+            const officialArt = data.sprites.other ?.['official-artwork'] ?.front_default;
             const defaultSprite = data.sprites.front_default;
-            hudPokemonImage.src = animatedSprite || officialArt || defaultSprite || 'https://placehold.co/130x130/334155/94a3b8?text=?';
+            hudPokemonImage.src = animatedSprite || officialArt || defaultSprite ||
+                'https://placehold.co/130x130/334155/94a3b8?text=?';
             hudPokemonImage.alt = data.name;
 
             // Genus (from speciesData)
-            const genusEntry = data.speciesData?.genera?.find(g => g.language.name === 'en');
+            const genusEntry = data.speciesData ?.genera ?.find(g => g.language.name === 'en');
             hudPokemonGenus.textContent = genusEntry ? genusEntry.genus : 'Unknown Genus';
 
             // Types
             hudPokemonTypes.innerHTML = '';
             if (data.types && data.types.length > 0) {
                 data.types.forEach(typeInfo => {
-                    const typeName = typeInfo.type.name; 
+                    const typeName = typeInfo.type.name;
                     const typeBadge = document.createElement('span');
-                    typeBadge.textContent = typeName; 
+                    typeBadge.textContent = typeName;
                     typeBadge.className = `type-badge type-${typeName}`;
                     hudPokemonTypes.appendChild(typeBadge);
                 });
@@ -561,14 +1461,14 @@ async function fetchPokemonDetails(url) {
                     const statRow = document.createElement('div');
                     statRow.className = 'stat-row';
                     statRow.innerHTML = `
-                        <div class="stat-name">${statName}</div>
-                        <div class="stat-bar-container">
-                            <div class="stat-bar-bg">
-                                <div class="stat-bar" style="width: ${statPercentage}%"></div>
-                            </div>
-                            <div class="stat-value">${statValue}</div>
-                        </div>
-                    `;
+                <div class="stat-name">${statName}</div>
+                <div class="stat-bar-container">
+                    <div class="stat-bar-bg">
+                        <div class="stat-bar" style="width: ${statPercentage}%"></div>
+                    </div>
+                    <div class="stat-value">${statValue}</div>
+                </div>
+            `;
                     hudPokemonStats.appendChild(statRow);
                 });
             }
@@ -589,38 +1489,41 @@ async function fetchPokemonDetails(url) {
             }
 
             // Height, Weight, Base Exp, Capture Rate
-            hudPokemonHeight.textContent = data.height ? `${(data.height / 10).toFixed(1)}` : '--'; // convert decimetres to meters
-            hudPokemonWeight.textContent = data.weight ? `${(data.weight / 10).toFixed(1)}` : '--'; // convert hectograms to kilograms
+            hudPokemonHeight.textContent = data.height ? `${(data.height / 10).toFixed(1)}` :
+            '--'; // convert decimetres to meters
+            hudPokemonWeight.textContent = data.weight ? `${(data.weight / 10).toFixed(1)}` :
+            '--'; // convert hectograms to kilograms
             hudPokemonBaseExp.textContent = data.base_experience || '--';
-            hudPokemonCaptureRate.textContent = data.speciesData?.capture_rate || '--';
+            hudPokemonCaptureRate.textContent = data.speciesData ?.capture_rate || '--';
 
             // Moves
-hudPokemonMoves.innerHTML = '';
-    if (data.latestMoves && data.latestMoves.length > 0) {
-        data.latestMoves.slice(0, 20).forEach(move => { // Limit to 20 moves for brevity
-            const moveItem = document.createElement('div');
-            moveItem.className = 'move-item';
+            hudPokemonMoves.innerHTML = '';
+            if (data.latestMoves && data.latestMoves.length > 0) {
+                data.latestMoves.slice(0, 20).forEach(move => { // Limit to 20 moves for brevity
+                    const moveItem = document.createElement('div');
+                    moveItem.className = 'move-item';
 
-            // --- START MODIFICATION ---
-            const moveName = move.name.replace('-', ' ');
-            const moveType = move.details?.type?.name || 'unknown';
-            const movePP = move.details?.pp || '--';
-            const moveBP = move.details?.power || '--';
-            const moveDescriptionEntry = move.details?.effect_entries?.find(entry => entry.language.name === 'en' && entry.effect);
-            const moveDescription = moveDescriptionEntry ? moveDescriptionEntry.effect.replace(/\$affect_rate/g, 'affect rate') : 'No description available.';
+                    const moveName = move.name.replace('-', ' ');
+                    const moveType = move.details ?.type ?.name || 'unknown';
+                    const movePP = move.details ?.pp || '--';
+                    const moveBP = move.details ?.power || '--';
+                    const moveDescriptionEntry = move.details ?.effect_entries ?.find(entry => entry.language
+                        .name === 'en' && entry.effect);
+                    const moveDescription = moveDescriptionEntry ? moveDescriptionEntry.effect.replace(
+                        /\$affect_rate/g, 'affect rate') : 'No description available.';
 
-            let learnMethodText = '';
-            if (move.learnMethod === 'level-up' && move.levelLearned > 0) {
-                learnMethodText = `(Lvl ${move.levelLearned})`;
-            } else if (move.learnMethod === 'machine') {
-                learnMethodText = `(TM/HM)`;
-            } else if (move.learnMethod === 'egg') {
-                learnMethodText = `(Egg)`;
-            } else if (move.learnMethod === 'tutor') {
-                learnMethodText = `(Tutor)`;
-            }
+                    let learnMethodText = '';
+                    if (move.learnMethod === 'level-up' && move.levelLearned > 0) {
+                        learnMethodText = `(Lvl ${move.levelLearned})`;
+                    } else if (move.learnMethod === 'machine') {
+                        learnMethodText = `(TM/HM)`;
+                    } else if (move.learnMethod === 'egg') {
+                        learnMethodText = `(Egg)`;
+                    } else if (move.learnMethod === 'tutor') {
+                        learnMethodText = `(Tutor)`;
+                    }
 
-            moveItem.innerHTML = `
+                    moveItem.innerHTML = `
                 <div class="flex items-center justify-between mb-1">
                     <div class="move-name">${moveName} ${learnMethodText ? `<span class="move-level">${learnMethodText}</span>` : ''}</div>
                     <span class="move-type-badge type-${moveType}">${moveType}</span>
@@ -635,25 +1538,32 @@ hudPokemonMoves.innerHTML = '';
                     hudPokemonMoves.appendChild(moveItem);
                 });
             } else {
-                hudPokemonMoves.innerHTML = '<p class="text-center text-gray-500 text-sm">No moves found for latest generation.</p>';
+                hudPokemonMoves.innerHTML =
+                    '<p class="text-center text-gray-500 text-sm">No moves found for latest generation.</p>';
             }
 
             // --- Show HUD with animations ---
             hudOverlay.classList.remove('hidden');
             statsHud.classList.remove('hidden');
             // Force reflow for transition to apply
-            void statsHud.offsetWidth; 
+            void statsHud.offsetWidth;
             hudOverlay.classList.add('visible');
             statsHud.classList.add('visible');
             statsHud.setAttribute('aria-hidden', 'false');
             hudOverlay.setAttribute('aria-hidden', 'false');
 
             // Add event listener to close button
-            hudCloseButton.addEventListener('click', hideStatsHud, { once: true }); // Use { once: true } to prevent multiple listeners
-            hudOverlay.addEventListener('click', hideStatsHud, { once: true });
+            hudCloseButton.addEventListener('click', hideStatsHud, {
+                once: true
+            }); // Use { once: true } to prevent multiple listeners
+            hudOverlay.addEventListener('click', hideStatsHud, {
+                once: true
+            });
 
             // Close with Escape key
-            document.addEventListener('keydown', handleEscapeKey, { once: true });
+            document.addEventListener('keydown', handleEscapeKey, {
+                once: true
+            });
         }
 
         /** Hides the Stats HUD Modal and overlay. */
@@ -686,16 +1596,16 @@ hudPokemonMoves.innerHTML = '';
 
         /** Checks if the user has scrolled near the bottom to load more Pokemon. */
         function handleScroll() {
-            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500 && !isLoading) {
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500 && !isLoading && !
+                isSearchMode) {
                 fetchPokemonBatch(currentOffset, BATCH_SIZE);
             }
         }
 
         // Initial load
         document.addEventListener('DOMContentLoaded', () => {
+            initializeSearch();
             fetchPokemonBatch(currentOffset, BATCH_SIZE);
             window.addEventListener('scroll', handleScroll);
         });
     </script>
-</body>
-</html>
